@@ -1,0 +1,76 @@
+##########################################################################
+##################################### Application
+##########################################################################
+app_domain_name: app.cloud.nadirarfi.com
+app_frontend_s3_bucket_name: prod-arfina-app-frontend-bucket-a89742dadaad
+app_backend_domain_name: api.app.cloud.nadirarfi.com
+app_backend_port_number: 8080
+app_backend_health_check_port_number: 8080
+app_backend_health_check_path: /api/health
+app_backend_dynamodb_table_name: prod-app-table
+
+
+##################################### ECS
+app_backend_ecs_cluster_name: prod-arfina-app-ecs-cluster
+# ECS Task
+app_backend_ecs_task_def_name: prod-arfina-app-backend-ecs-task-definition
+app_backend_ecs_task_def_container_name: prod-arfina-app-backend-ecs-task-container
+app_backend_ecs_task_def_cpu: 512
+app_backend_ecs_task_def_memory: 1024
+app_backend_ecs_task_def_log_group_name: /prod/arfina/app/ecs/aws/task/backend
+app_backend_ecs_task_def_log_stream_prefix: /backend
+# ECS Service
+app_backend_ecs_service_name: prod-arfina-app-backend-ecs-service
+app_backend_ecs_service_launch_type: FARGATE
+app_backend_ecs_service_deployment_controller_type: CODE_DEPLOY
+app_backend_ecs_service_health_check_grace_period_seconds: 30
+app_backend_ecs_service_desired_count: 1
+
+
+##################################### Application Load Balancer
+app_backend_alb_name: prod-arfina-app-back-alb
+app_backend_blue_alb_target_group_name: prod-blue-back
+app_backend_green_alb_target_group_name: prod-green-back
+app_backend_alb_idle_timeout: 60
+
+##########################################################################
+##################################### VPC
+##########################################################################
+vpc_cidr_block: 10.11.0.0/16
+vpc_private_subnets:
+  - availability_zone: eu-west-1a
+    cidr_block: 10.11.1.0/24
+  - availability_zone: eu-west-1b
+    cidr_block: 10.11.2.0/24
+vpc_public_subnets:
+  - availability_zone: eu-west-1a
+    cidr_block: 10.11.3.0/24
+  - availability_zone: eu-west-1b
+    cidr_block: 10.11.4.0/24
+
+##########################################################################
+##################################### SSM Parameters
+##########################################################################
+ssm_params:
+  # VPC
+  vpc_id: /prod/arfina/app/terraform/aws/vpc/id
+  public_subnets_id: /prod/arfina/app/terraform/aws/vpc/subnet/public/ids
+  private_subnets_id: /prod/arfina/app/terraform/aws/vpc/subnet/private/ids
+
+  # Security Groups
+  app_backend_alb_sg_id: /prod/arfina/app/terraform/aws/security_group/alb/backend/id
+  app_backend_ecs_sg_id: /prod/arfina/app/terraform/aws/security_group/app/backend/id
+
+  # ALB
+  app_backend_alb_listeners_arns: /prod/arfina/app/terraform/aws/alb/backend/listeners/arns
+  app_backend_alb_https_listener_arn: /prod/arfina/app/terraform/aws/alb/backend/https/listener/arn
+  app_backend_blue_alb_target_group_arn: /prod/arfina/app/terraform/aws/alb/backend/blue/target/group/arn
+  app_backend_green_alb_target_group_arn: /prod/arfina/app/terraform/aws/alb/backend/green/target/group/arn
+
+  # ECS 
+  app_backend_ecs_cluster_name: /prod/arfina/app/terraform/aws/ecs/cluster/name
+  app_backend_ecs_cluster_arn: /prod/arfina/app/terraform/aws/ecs/cluster/arn
+  app_backend_ecs_cluster_id: /prod/arfina/app/terraform/aws/ecs/cluster/id
+  app_backend_ecs_task_def_arn: /prod/arfina/app/terraform/aws/ecs/backend/task/arn
+  app_backend_ecs_task_def_role_arn: /prod/arfina/app/terraform/aws/ecs/backend/task/role/arn
+  app_backend_ecs_task_def_execution_role_arn: /prod/arfina/app/terraform/aws/ecs/backend/task/execution/role/arn

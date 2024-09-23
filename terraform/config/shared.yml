@@ -1,0 +1,63 @@
+##################################### Project
+project_name: aws-cicd-terraform-ecs-todolist-app
+application: app
+
+##################################### AWS Configuration
+aws_region_name: eu-west-1
+aws_region_code: ew1
+aws_account_id: 651199910127
+aws_profile_name: arfin-admin
+aws_tf_state_s3_bucket_name: app-nadir-terraform-state
+aws_tf_state_dynamodb_table_name: app-nadir-terraform-state
+aws_route53_dns_zone_name: nadirarfi.com
+
+##################################### CI/CD Pipeline
+cicd:
+  # Application
+  app_backend_repository_path: apps/backend
+  app_frontend_repository_path: apps/frontend
+  # Codepipeline
+  codepipeline_name: app-nadir-codepipeline
+  codepipeline_github_repo_owner: nadirarfi
+  codepipeline_github_repo_name: aws-terraform-demo-ecs-app-cicd
+  codepipeline_github_repo_branch: main
+  codepipeline_github_repo_dev_branch: develop
+  codepipeline_source_stage_artifact_name: SourceArtifact
+  codepipeline_build_stage_backend_artifact_name: BackendBuildArtifact
+  codepipeline_build_stage_frontend_artifact_name: FrontendBuildArtifact
+
+  # Elastic Container Registry
+  ecr_backend_repository_name: arfina-app-backend-repository
+  ecr_frontend_repository_name: arfina-app-frontend-repository
+  # Codebuild Projects
+  codebuild_backend_project_name: arfina-app-codebuild-project-backend
+  codebuild_frontend_project_name: arfina-app-codebuild-project-frontend
+  codebuild_backend_log_stream_name: /backend
+  codebuild_frontend_log_stream_name: /frontend
+  codebuild_backend_log_group_name: /arfina/app/terraform/aws/codebuild/project/backend
+  codebuild_frontend_log_group_name: /arfina/app/terraform/aws/codebuild/project/frontend
+  # Codedeploy Apps
+  codedeploy_backend_app_name: arfina-app-codedeploy-backend
+  codedeploy_backend_dev_deployment_group_name: deployment-group-dev
+
+  codedeploy_frontend_app_name: arfina-app-codedeploy-frontend
+  codedeploy_frontend_dev_deployment_group_name: deployment-group-dev
+
+
+##################################### SSM Parameters
+ssm_params:
+  # ECR Repositories
+  ecr_backend_repository_arn: /arfina/app/terraform/aws/ecr/repository/backend/arn
+  ecr_frontend_repository_arn: /arfina/app/terraform/aws/ecr/repository/frontend/arn
+  ecr_backend_repository_url: /arfina/app/terraform/aws/ecr/repository/backend/url
+  ecr_frontend_repository_url: /arfina/app/terraform/aws/ecr/repository/frontend/url
+  # Codebuild Projects
+  codebuild_backend_project_id: /arfina/app/terraform/aws/codebuild/project/backend/id
+  codebuild_frontend_project_id: /arfina/app/terraform/aws/codebuild/project/frontend/id
+  codebuild_backend_assumable_role_arn: /arfina/app/terraform/aws/codebuild/backend/assumable/role/arn
+  codebuild_frontend_assumable_role_arn: /arfina/app/terraform/aws/codebuild/frontend/assumable/role/arn
+
+  # Codepipeline
+  codepipeline_github_oauth_token: /arfina/app/terraform/aws/codepipeline/oauth_token
+  codepipeline_codestarconnection_arn: /arfina/github/app/aws/codepipeline/codestarconnection/arn
+

@@ -1,0 +1,46 @@
+{
+    "family": "<TASK_FAMILY>",
+    "containerDefinitions": [
+      {
+        "name": "<CONTAINER_NAME>",
+        "image": "<ECR_REPOSITORY_URL>:<ECR_IMAGE_TAG>",
+        "cpu": <CONTAINER_CPU>,
+        "memoryReservation": <CONTAINER_MEMORY_RESERVATION>,
+        "portMappings": [
+          {
+            "containerPort": <CONTAINER_PORT>,
+            "hostPort": <CONTAINER_PORT>,
+            "protocol": "tcp"
+          }
+        ],
+        "essential": true,
+        "environment": [
+          {
+            "name": "DYNAMODB_TABLE_NAME",
+            "value": "<DYNAMODB_TABLE_NAME>"
+          },
+          {
+            "name": "AWS_REGION",
+            "value": "<AWS_REGION>"
+          }
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+            "awslogs-group": "<AWSLOGS_GROUP>",
+            "awslogs-region": "<AWS_REGION>",
+            "awslogs-stream-prefix": "<AWSLOGS_STREAM_PREFIX>"
+          }
+        }
+      }
+    ],
+    "taskRoleArn": "<TASK_ROLE_ARN>",
+    "executionRoleArn": "<TASK_EXECUTION_ROLE_ARN>",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": [
+      "FARGATE"
+    ],
+    "cpu": "<TASK_CPU>",
+    "memory": "<TASK_MEMORY>"
+  }
+  

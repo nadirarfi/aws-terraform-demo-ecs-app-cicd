@@ -1,16 +1,28 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: MIT-0
+# Use an official node image as a base image
+FROM node:14
 
-# build stage
-FROM public.ecr.aws/bitnami/node:16 as build-stage
+# Set the working directory
 WORKDIR /app
-COPY package*.json ./
+
+
+# Copy package.json and package-lock.json files to the working directory
+COPY package.json ./
+
+
+# Install dependencies
 RUN npm install
-COPY . .
+
+# Copy the rest of the application files
+COPY . ./
+
+# Build the app for production
 RUN npm run build
 
-# production stage
-FROM public.ecr.aws/nginx/nginx:latest as production-stage
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Expose the port the app will run on
+EXPOSE 3000
+
+# Serve the built app using a simple HTTP server
+RUN npm install -g serve
+
+# Start the app using the 'serve' command, serving the build folder
+CMD ["serve", "-s", "build"]

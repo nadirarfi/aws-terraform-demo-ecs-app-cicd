@@ -1,10 +1,4 @@
-# Backend of the demo app
+# Backend Application (Django)
 
-## Project setup
-```
-npm install
-```
-### Compiles and hot-reloads for development
-```
-npm start
-```
+This directory contains the source code for the backend application, built using **Django**, a Python web framework. This backend handles the business logic, interacts with DynamoDB for data storage, and serves API endpoints to the frontend.
+
