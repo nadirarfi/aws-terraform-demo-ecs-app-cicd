@@ -1,0 +1,190 @@
+version: 0.2
+env:
+  git-credential-helper: yes
+
+phases:
+  pre_build:
+    commands:
+      - echo "==========================================================================="
+      - echo "Starting Pre-build Phase for Backend..."
+      - echo "==========================================================================="
+      
+      - echo "Listing the current directory contents:"
+      - ls -lt || { echo "Failed to list directory contents."; exit 1; }
+
+      # aws cli configuration
+      - echo "Configuring AWS Profile"
+      - aws configure set profile.codebuild_assumable.region $AWS_REGION
+      - aws configure set profile.codebuild_assumable.credential_source EcsContainer
+      - aws configure set profile.codebuild_assumable.role_arn $AWS_ASSUMABLE_ROLE_ARN
+
+      # Setup artifacts and template paths
+      - export ARTIFACTS_DIRECTORY=terraform/artifacts
+      - export TASK_DEF_TEMPLATE=terraform/templates/backend_task_definition.tpl.json
+      - export APP_SPEC_TEMPLATE=terraform/templates/backend-appspec.tpl.yml
+      - export COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+
+      - echo "==========================================================================="
+      - echo "Creating artifacts directory at $ARTIFACTS_DIRECTORY..."
+      - echo "==========================================================================="
+      - mkdir -p $ARTIFACTS_DIRECTORY || { echo "Failed to create artifacts directory."; exit 1; }
+      - echo "Artifacts directory created successfully."
+
+      # Define and use functions in the same command block
+      - |
+        function get_latest_task_definition_arn {
+            local task_definition_name=$1
+            local task_definition_arn=$(aws ecs list-task-definitions --family-prefix $task_definition_name --sort DESC --query "taskDefinitionArns[0]" --output text)
+            echo "$task_definition_arn"
+        }
+
+        function update_ssm_with_task_definition_arn {
+            local env=$1
+            local task_definition_name=$2
+            local ssm_key=$3
+            echo "Updating SSM with the latest task definition for $env environment..."
+            # Call the get_latest_task_definition_arn function to get the latest task definition ARN
+            local task_definition_arn=$(get_latest_task_definition_arn "$task_definition_name")
+            # Update the task definition ARN in SSM Parameter Store
+            aws ssm put-parameter --name "$ssm_key" --value "$task_definition_arn" --type String --overwrite
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to update SSM parameter for $env environment." >&2
+                exit 1
+            fi
+            echo "SSM Parameter updated with the latest Task Definition ARN for $env environment."
+        }
+
+        # Fetch the latest task definition ARN for dev environment and store it in a variable
+        DEV_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$DEV_TASK_FAMILY")
+        PROD_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$PROD_TASK_FAMILY")
+        
+        # Update the SSM with the latest task definition ARN for the dev environment
+        update_ssm_with_task_definition_arn "dev" "$DEV_TASK_FAMILY" "$DEV_SSM_TASK_DEFINITION_ARN_KEY"
+        update_ssm_with_task_definition_arn "prod" "$PROD_TASK_FAMILY" "$PROD_SSM_TASK_DEFINITION_ARN_KEY"
+ 
+      
+      # Login to Amazon ECR
+      - echo "==========================================================================="
+      - echo "Logging in to Amazon ECR for $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com..."
+      - echo "==========================================================================="
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com || { echo "ECR login failed."; exit 1; }
+      - echo "Successfully logged into Amazon ECR."
+
+      - echo "==========================================================================="
+      - echo "Pre-build phase completed."
+      - echo "==========================================================================="
+
+  build:
+    commands:
+      - echo "==========================================================================="
+      - echo "Starting Build Phase for Backend..."
+      - echo "==========================================================================="
+
+      # Build Docker Image for dev environment 
+      - echo "Building Docker image for dev environment..."
+      - docker build -t $ECR_REPOSITORY_URL:$COMMIT_HASH -t $ECR_REPOSITORY_URL:latest $APP_REPOSITORY_PATH || { echo "Docker build for dev failed."; exit 1; }
+      - echo "Docker image built and tagged as $ECR_REPOSITORY_URL:$COMMIT_HASH."
+
+      # Function definitions and calls
+      - |
+        function setup_task_definition {
+          local env=$1
+          local task_def_tpl="$ARTIFACTS_DIRECTORY/${env}_backend_task_definition.tpl.json"
+          local task_def_output="$ARTIFACTS_DIRECTORY/${env}_backend_task_def.json"
+          local task_family_var="${env^^}_TASK_FAMILY"
+          local container_name_var="${env^^}_CONTAINER_NAME"
+          local container_cpu_var="${env^^}_CONTAINER_CPU"
+          local container_memory_var="${env^^}_CONTAINER_MEMORY_RESERVATION"
+          local container_port_var="${env^^}_CONTAINER_PORT"
+          local dynamodb_table_var="${env^^}_DYNAMODB_TABLE_NAME"
+          local awslogs_group_var="${env^^}_AWSLOGS_GROUP"
+          local awslogs_stream_var="${env^^}_AWSLOGS_STREAM_PREFIX"
+          local task_role_arn_var="${env^^}_TASK_ROLE_ARN"
+          local task_execution_role_arn_var="${env^^}_TASK_EXECUTION_ROLE_ARN"
+          local healthcheck_path_var="${env^^}_HEALTHCHECK_PATH"
+          
+          echo "==========================================================================="
+          echo "Setting up task definition for $env..."
+          echo "==========================================================================="
+          cp $TASK_DEF_TEMPLATE $task_def_tpl || { echo "Failed to copy task definition template for $env."; exit 1; }
+
+          sed -i "s|<TASK_FAMILY>|${!task_family_var}|g" $task_def_tpl
+          sed -i "s|<CONTAINER_NAME>|${!container_name_var}|g" $task_def_tpl
+          sed -i "s|<ECR_REPOSITORY_URL>|$ECR_REPOSITORY_URL|g" $task_def_tpl
+          sed -i "s|<ECR_IMAGE_TAG>|$COMMIT_HASH|g" $task_def_tpl
+          sed -i "s|<CONTAINER_CPU>|${!container_cpu_var}|g" $task_def_tpl
+          sed -i "s|<CONTAINER_MEMORY_RESERVATION>|${!container_memory_var}|g" $task_def_tpl
+          sed -i "s|<CONTAINER_PORT>|${!container_port_var}|g" $task_def_tpl
+          sed -i "s|<DYNAMODB_TABLE_NAME>|${!dynamodb_table_var}|g" $task_def_tpl
+          sed -i "s|<AWS_REGION>|$AWS_REGION|g" $task_def_tpl
+          sed -i "s|<AWSLOGS_GROUP>|${!awslogs_group_var}|g" $task_def_tpl
+          sed -i "s|<AWSLOGS_STREAM_PREFIX>|${!awslogs_stream_var}|g" $task_def_tpl
+          sed -i "s|<HEALTHCHECK_PATH>|${!healthcheck_path_var}|g" $task_def_tpl
+          sed -i "s|<TASK_ROLE_ARN>|${!task_role_arn_var}|g" $task_def_tpl
+          sed -i "s|<TASK_EXECUTION_ROLE_ARN>|${!task_execution_role_arn_var}|g" $task_def_tpl
+          sed -i "s|<TASK_CPU>|${!container_cpu_var}|g" $task_def_tpl
+          sed -i "s|<TASK_MEMORY>|${!container_memory_var}|g" $task_def_tpl
+
+          mv $task_def_tpl $task_def_output || { echo "Failed to generate task definition for $env."; exit 1; }
+          echo "$env task definition prepared successfully."
+        }
+
+        function setup_appspec {
+          local env=$1
+          local appspec_tpl="$ARTIFACTS_DIRECTORY/${env}_backend_appspec.tpl.yml"
+          local appspec_output="$ARTIFACTS_DIRECTORY/${env}_backend_appspec.yml"
+          local task_def_arn_var="${env^^}_TASK_DEFINITION_ARN"  # Assume ARN is passed as an env variable
+          local container_name_var="${env^^}_CONTAINER_NAME"
+          local container_port_var="${env^^}_CONTAINER_PORT"
+
+          echo "==========================================================================="
+          echo "Setting up AppSpec file for $env..."
+          echo "==========================================================================="
+          cp $APP_SPEC_TEMPLATE $appspec_tpl || { echo "Failed to copy AppSpec template for $env."; exit 1; }
+
+          # Use the task definition ARN instead of the JSON file
+          sed -i "s|<TASK_DEFINITION>|${!task_def_arn_var}|g" $appspec_tpl
+          sed -i "s|<CONTAINER_NAME>|${!container_name_var}|g" $appspec_tpl
+          sed -i "s|<SERVICE_PORT>|${!container_port_var}|g" $appspec_tpl
+
+          mv $appspec_tpl $appspec_output || { echo "Failed to generate AppSpec for $env."; exit 1; }
+          echo "$env AppSpec prepared successfully."
+        }
+
+        # Call the functions for both dev and prod
+        setup_task_definition "dev"
+        setup_task_definition "prod"
+        setup_appspec "dev"
+        setup_appspec "prod"
+
+      # Verify the generated task definitions and AppSpec files
+      - echo "==========================================================================="
+      - echo "Verifying the generated task definitions and AppSpec files..."
+      - echo "==========================================================================="
+      - cat $ARTIFACTS_DIRECTORY/dev_backend_task_def.json || { echo "Failed to read dev task definition."; exit 1; }
+      - cat $ARTIFACTS_DIRECTORY/prod_backend_task_def.json || { echo "Failed to read prod task definition."; exit 1; }
+      - cat $ARTIFACTS_DIRECTORY/dev_backend_appspec.yml || { echo "Failed to read dev AppSpec file."; exit 1; }
+      - cat $ARTIFACTS_DIRECTORY/prod_backend_appspec.yml || { echo "Failed to read prod AppSpec file."; exit 1; }
+
+  post_build:
+    commands:
+      - echo "==========================================================================="
+      - echo "Starting Post-build Phase..."
+      - echo "==========================================================================="
+
+      - echo "Build completed on `date`"
+      - echo "Pushing the Docker images to ECR..."
+      - docker push $ECR_REPOSITORY_URL:$COMMIT_HASH || { echo "Failed to push Docker image for dev."; exit 1; }
+      - echo "Docker images pushed successfully to ECR."
+      - echo "==========================================================================="
+      - echo "Post-build phase completed."
+      - echo "==========================================================================="
+
+artifacts:
+  files:
+    - dev_backend_task_def.json
+    - prod_backend_task_def.json
+    - dev_backend_appspec.yml
+    - prod_backend_appspec.yml
+  base-directory: "$ARTIFACTS_DIRECTORY"
+  discard-paths: yes

@@ -1,30 +1,36 @@
 {
-  "name": "aws-ecs-demo-frontend",
-  "version": "0.1.0",
-  "description": "AWS Demo",
-  "author": "Marina Burkhardt",
-  "private": true,
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
-  },
-  "dependencies": {
-    "aws-sdk": "^2.885.0",
-    "axios": "^0.21.2",
-    "bootstrap-vue": "^2.15.0",
-    "core-js": "^3.6.5",
-    "vue": "^2.6.11",
-    "vue-router": "^3.2.0"
-  },
-  "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.4.0",
-    "@vue/cli-plugin-eslint": "~4.4.0",
-    "@vue/cli-plugin-router": "~4.4.0",
-    "@vue/cli-service": "~4.4.0",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "vue-template-compiler": "^2.6.11"
+    "name": "todo-frontend",
+    "version": "1.0.0",
+    "description": "Simple React frontend for a todo list",
+    "main": "src/index.js",
+    "scripts": {
+      "start": "react-scripts start",
+      "build": "react-scripts build",
+      "test": "react-scripts test",
+      "eject": "react-scripts eject"
+    },
+    "dependencies": {
+      "@babel/core": "^7.16.0",
+      "react": "^17.0.2",
+      "react-dom": "^17.0.2",
+      "react-scripts": "4.0.3"
+    },
+    "devDependencies": {
+      "@babel/preset-env": "^7.16.0",
+      "@babel/preset-react": "^7.16.0"
+    },
+    "proxy": "http://localhost:8000",
+    "browserslist": {
+      "production": [
+        ">0.2%",
+        "not dead",
+        "not op_mini all"
+      ],
+      "development": [
+        "last 1 chrome version",
+        "last 1 firefox version",
+        "last 1 safari version"
+      ]
+    }
   }
-}
+  

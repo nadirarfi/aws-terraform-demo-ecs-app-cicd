@@ -1,18 +1,31 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: MIT-0
+# Use an official Python runtime as a parent image
+FROM python:3.12-slim
 
-FROM public.ecr.aws/bitnami/node:latest
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-RUN mkdir -p /home/node/app/node_modules
+# Set working directory in the container
+WORKDIR /app
 
-WORKDIR /home/node/app
+# Copy the requirements file into the container
+COPY requirements.txt /app/
 
-COPY package*.json ./
+# Install any dependencies specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN npm install
+# Copy the current directory contents into the container at /app
+COPY . /app/
 
-COPY . .
+# Expose the application on port 8080
+EXPOSE 8080
 
-EXPOSE 3001
+# Set environment variables for Django
+ENV DJANGO_SETTINGS_MODULE=app.settings
+ENV PORT=8080
 
-CMD [ "npm", "start" ]
+# Collect static files (if any)
+RUN python manage.py collectstatic --no-input
+
+# Command to run the application
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app.wsgi:application"]

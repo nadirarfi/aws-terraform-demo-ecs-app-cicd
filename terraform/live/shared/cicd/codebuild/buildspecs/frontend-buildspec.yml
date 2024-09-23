@@ -1,0 +1,94 @@
+version: 0.2
+env:
+  git-credential-helper: yes
+
+phases:
+  pre_build:
+    commands:
+      - echo "==========================================================================="
+      - echo "Starting Pre-build Phase for Frontend..."
+      - echo "==========================================================================="
+      - echo "Listing the current directory contents:"
+      - ls -lt || { echo "Failed to list directory contents."; exit 1; }
+
+      # AWS CLI v2
+      - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      - unzip -q awscliv2.zip
+      - ./aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
+      - rm -f awscliv2.zip
+      - rm -rf aws
+
+      # aws cli configuration
+      - echo "Configuring AWS Profile"
+      - aws configure set profile.codebuild_assumable.region $AWS_REGION
+      - aws configure set profile.codebuild_assumable.credential_source EcsContainer
+      - aws configure set profile.codebuild_assumable.role_arn $AWS_ASSUMABLE_ROLE_ARN
+
+      # Setup artifacts and template paths
+      - export artifacts_directory=terraform/artifacts
+      - export commit_hash=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+
+      - echo "==========================================================================="
+      - echo "Creating artifacts directory at $artifacts_directory..."
+      - echo "==========================================================================="
+      - mkdir -p $artifacts_directory || { echo "Failed to create artifacts directory."; exit 1; }
+      - echo "Artifacts directory created successfully."
+
+      - echo "==========================================================================="
+      - echo "Pre-build phase completed."
+      - echo "==========================================================================="
+
+  build:
+    commands:
+      - echo "==========================================================================="
+      - echo "Starting Build Phase for Frontend..."
+      - echo "==========================================================================="
+
+      - |
+        function build_static_files {
+          local env=$1
+          local app_repository_path=$2
+          local app_frontend_bucket_uri=$3
+          docker_image_name=app-frontend-image
+
+          # Build the Docker image
+          echo "Building the Docker image for $env..."
+          docker build -t $docker_image_name $app_repository_path || { echo "Docker build failed for $env."; exit 1; }
+
+          # Run the Docker container to build the static files
+          echo "Running the Docker container to build the static files for $env..."
+          docker run --name ${docker_image_name}-container -d $docker_image_name
+
+          # Copy the build folder from the container to the local machine
+          echo "Copying the build folder from the container to the local machine for $env..."
+          docker cp ${docker_image_name}-container:/app/build ./build || { echo "Failed to copy build folder."; exit 1; }
+
+          # Stop and remove the container after the build
+          echo "Stopping and removing the container for $env..."
+          docker stop ${docker_image_name}-container
+          docker rm ${docker_image_name}-container
+          echo "Build process completed for $env. Static files are located in the ./build directory."
+
+          # Update static files in the S3 bucket
+          echo "Uploading static files to the S3 bucket for $env..."
+          aws s3 sync ./build $app_frontend_bucket_uri || { echo "Failed to sync files to S3."; exit 1; }
+          rm -rf ./build
+
+          echo "Build and upload completed for $env on $(date)."
+        }
+
+        build_static_files "dev" $APP_REPOSITORY_PATH $DEV_APP_FRONTEND_BUCKET_URI
+        build_static_files "prod" $APP_REPOSITORY_PATH $PROD_APP_FRONTEND_BUCKET_URI
+ 
+  post_build:
+    commands:
+      - echo "==========================================================================="
+      - echo "Starting Post-build Phase for Frontend..."
+      - echo "==========================================================================="
+
+      # You can enable CloudFront invalidation here if needed
+      # - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+
+      - echo "==========================================================================="
+      - echo "Post-build phase for Frontend completed."
+      - echo "==========================================================================="

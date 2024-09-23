@@ -1,0 +1,5 @@
+Django==4.2
+djangorestframework
+boto3
+gunicorn==23.0.0
+django-cors-headers==3.13.0 
