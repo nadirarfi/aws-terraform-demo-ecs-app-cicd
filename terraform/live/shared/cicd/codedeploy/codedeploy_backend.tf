@@ -3,7 +3,7 @@ module "aws_codedeploy_backend" {
   source = "../../../../modules/aws/codedeploy"
 
   codedeploy_app_name                            = local.cicd.codedeploy_backend_app_name
-  codedeploy_app_deployment_config_name          = "CodeDeployDefault.ECSLinear10PercentEvery1Minutes"
+  codedeploy_app_deployment_config_name          = "CodeDeployDefault.ECSAllAtOnce"
   codedeploy_app_compute_platform                = "ECS"
   codedeploy_app_auto_rollback_enabled           = true
   codedeploy_app_auto_rollback_events            = ["DEPLOYMENT_FAILURE"]

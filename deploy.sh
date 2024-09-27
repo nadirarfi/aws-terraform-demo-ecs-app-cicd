@@ -1,32 +1,59 @@
+#!/bin/bash
+
 ####################################################################################################
-############## Deploy all resources
+############## Deploy all resources using apply-auto-approve
 ####################################################################################################
 
 cd terraform
 
-################################################# Infrastructure
-# ./tf.sh apply-auto-approve dev vpc
-# ./tf.sh apply-auto-approve dev security_groups
-# ./tf.sh apply-auto-approve dev alb_target_groups
-# ./tf.sh apply-auto-approve dev alb
-# ./tf.sh apply-auto-approve dev ecs_cluster
-# ./tf.sh apply-auto-approve dev db
+# Define resources for each category
+infrastructure_resources=(
+    # "vpc"
+    # "security_groups"
+    # "alb_target_groups"
+    # "alb"
+    # "ecs_cluster"
+    # "db"
+)
 
-# ./tf.sh apply-auto-approve prod vpc
-# ./tf.sh apply-auto-approve prod security_groups
-# ./tf.sh apply-auto-approve prod alb_target_groups
-# ./tf.sh apply-auto-approve prod alb
-# ./tf.sh apply-auto-approve prod ecs_cluster
-# ./tf.sh apply-auto-approve prod db
+application_resources=(
+    "backend"
+    "frontend"
+)
 
-# ################################################## Applications
-# ./tf.sh apply-auto-approve dev backend
-# ./tf.sh apply-auto-approve dev frontend
+cicd_resources=(
+    "codebuild"
+    "codedeploy"
+    "codepipeline"
+)
 
-# ./tf.sh apply-auto-approve prod backend
-# ./tf.sh apply-auto-approve prod frontend
+# Define environments and their associated resource types
+declare -A env_resource_mapping=(
+    [dev]="infrastructure_resources application_resources"
+    [prod]="infrastructure_resources application_resources"
+    [shared]="cicd_resources"
+)
 
-# ################################################## CICD
-./tf.sh apply-auto-approve shared codebuild
-# ./tf.sh apply-auto-approve shared codedeploy
-./tf.sh apply-auto-approve shared codepipeline
+# Function to apply Terraform actions with error handling
+deploy_all() {
+    local env=$1
+    local resource_groups=(${env_resource_mapping[$env]})
+
+    for group in "${resource_groups[@]}"; do
+        declare -n resources="$group"  # Use declare -n for indirect expansion (Bash 4.3+)
+
+        for resource in "${resources[@]}"; do
+            echo "Applying $env $resource"
+            ./tf.sh apply-auto-approve "$env" "$resource"
+            if [ $? -ne 0 ]; then
+                echo "Error: Terraform failed while applying $env $resource"
+                exit 1
+            fi
+        done
+    done
+}
+
+# Apply resources for dev and prod environments
+deploy_all "dev"
+# deploy_all "prod"
+deploy_all "shared"

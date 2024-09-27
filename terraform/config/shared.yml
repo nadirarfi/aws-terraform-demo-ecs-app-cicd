@@ -51,13 +51,14 @@ ssm_params:
   ecr_frontend_repository_arn: /arfina/app/terraform/aws/ecr/repository/frontend/arn
   ecr_backend_repository_url: /arfina/app/terraform/aws/ecr/repository/backend/url
   ecr_frontend_repository_url: /arfina/app/terraform/aws/ecr/repository/frontend/url
+
   # Codebuild Projects
   codebuild_backend_project_id: /arfina/app/terraform/aws/codebuild/project/backend/id
   codebuild_frontend_project_id: /arfina/app/terraform/aws/codebuild/project/frontend/id
   codebuild_backend_assumable_role_arn: /arfina/app/terraform/aws/codebuild/backend/assumable/role/arn
   codebuild_frontend_assumable_role_arn: /arfina/app/terraform/aws/codebuild/frontend/assumable/role/arn
+  codebuild_docker_hub_username: /arfina/app/terraform/aws/codebuild/docker/hub/username
+  codebuild_docker_hub_password: /arfina/app/terraform/aws/codebuild/docker/hub/password
 
   # Codepipeline
-  codepipeline_github_oauth_token: /arfina/app/terraform/aws/codepipeline/oauth_token
   codepipeline_codestarconnection_arn: /arfina/github/app/aws/codepipeline/codestarconnection/arn
-

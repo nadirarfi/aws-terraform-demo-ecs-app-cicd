@@ -1,32 +1,61 @@
+#!/bin/bash
+
+####################################################################################################
+############## Deploy all resources using destroy-auto-approve
+####################################################################################################
+
 cd terraform
 
-################################################## CICD
-# ./tf.sh destroy-auto-approve shared codepipeline
-# ./tf.sh destroy-auto-approve shared codedeploy
-# ./tf.sh destroy-auto-approve shared codebuild
+# Define resources for each category
+infrastructure_resources=(
+    # "vpc"
+    # "security_groups"
+    # "alb_target_groups"
+    # "alb"
+    # "ecs_cluster"
+    # "db"
+)
 
-################################################## Applications (ECS service)
-./tf.sh destroy-auto-approve dev frontend
-./tf.sh destroy-auto-approve prod frontend
+application_resources=(
+    "backend"
+    "frontend"
+)
 
-# ./tf.sh destroy-auto-approve dev backend
-# ./tf.sh destroy-auto-approve prod backend
+cicd_resources=(
+    "codebuild"
+    "codedeploy"
+    "codepipeline"
+)
 
-################################################# Infrastructure
-# ./tf.sh destroy-auto-approve dev db
-# ./tf.sh destroy-auto-approve prod db
+# Define environments and their associated resource types
+declare -A env_resource_mapping=(
+    [dev]="infrastructure_resources application_resources"
+    [prod]="infrastructure_resources application_resources"
+    [shared]="cicd_resources"
+)
 
-# ./tf.sh destroy-auto-approve dev ecs_cluster
-# ./tf.sh destroy-auto-approve prod ecs_cluster
+# Function to destroy Terraform actions with error handling
+destroy_all() {
+    local env=$1
+    local resource_groups=(${env_resource_mapping[$env]})
 
-# ./tf.sh destroy-auto-approve dev alb
-# ./tf.sh destroy-auto-approve prod alb
+    for group in "${resource_groups[@]}"; do
+        declare -n resources="$group" # Use declare -n for indirect expansion (Bash 4.3+)
 
-# ./tf.sh destroy-auto-approve dev alb_target_groups
-# ./tf.sh destroy-auto-approve prod alb_target_groups
+        # Loop through the resources array in reverse order
+        for ((i = ${#resources[@]} - 1; i >= 0; i--)); do
+            resource="${resources[$i]}"
+            echo "Destroying $env $resource"
+            ./tf.sh destroy-auto-approve "$env" "$resource"
+            if [ $? -ne 0 ]; then
+                echo "Error: Terraform failed while destroying $env $resource"
+                exit 1
+            fi
+        done
+    done
+}
 
-# ./tf.sh destroy-auto-approve dev security_groups
-# ./tf.sh destroy-auto-approve prod security_groups
-
-# ./tf.sh destroy-auto-approve dev vpc
-# ./tf.sh destroy-auto-approve prod vpc
+# Apply resources for dev and prod environments
+destroy_all "shared"
+destroy_all "dev"
+destroy_all "prod"

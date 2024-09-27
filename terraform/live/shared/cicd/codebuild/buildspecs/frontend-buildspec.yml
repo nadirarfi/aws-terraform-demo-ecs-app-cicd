@@ -34,6 +34,10 @@ phases:
       - mkdir -p $artifacts_directory || { echo "Failed to create artifacts directory."; exit 1; }
       - echo "Artifacts directory created successfully."
 
+      # Get docker hub credentials
+      - DOCKER_HUB_USERNAME=$(aws ssm get-parameter --name $SSM_DOCKER_HUB_USERNAME_KEY --query "Parameter.Value" --output text)
+      - DOCKER_HUB_PASSWORD=$(aws ssm get-parameter --name $SSM_DOCKER_HUB_PASSWORD_KEY --query "Parameter.Value" --output text)
+
       - echo "==========================================================================="
       - echo "Pre-build phase completed."
       - echo "==========================================================================="
@@ -43,6 +47,9 @@ phases:
       - echo "==========================================================================="
       - echo "Starting Build Phase for Frontend..."
       - echo "==========================================================================="
+
+      # Login to Docker Hub
+      - echo "$DOCKER_HUB_PASSWORD" | docker login --username $DOCKER_HUB_USERNAME --password-stdin
 
       - |
         function build_static_files {
@@ -85,6 +92,8 @@ phases:
       - echo "==========================================================================="
       - echo "Starting Post-build Phase for Frontend..."
       - echo "==========================================================================="
+        
+      - docker logout
 
       # You can enable CloudFront invalidation here if needed
       # - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"

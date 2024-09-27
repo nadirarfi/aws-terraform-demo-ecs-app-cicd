@@ -9,6 +9,11 @@
 sudo apt-get install fzf tree yq
 ```
 
+```bash
+pip install graphviz diagrams
+
+```
+
 ## Terraform state remote backend - lock files resources (s3 bucket and dynamodb table)
 ```bash
 cd /terraform/live/shared/setup/terraform_state

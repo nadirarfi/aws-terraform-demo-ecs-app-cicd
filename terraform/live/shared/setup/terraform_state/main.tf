@@ -4,5 +4,5 @@ module "aws_terraform_state_backend" {
 
   tf_state_dynamodb_table_name = local.shared.aws_tf_state_dynamodb_table_name
   tf_state_s3_bucket_name      = local.shared.aws_tf_state_s3_bucket_name
-  tags = {} 
+  tags                         = {}
 }

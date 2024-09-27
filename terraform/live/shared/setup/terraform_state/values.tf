@@ -1,3 +1,3 @@
 locals {
-  shared     = yamldecode(file("../../../../config/shared.yml"))
+  shared = yamldecode(file("../../../../config/shared.yml"))
 }

@@ -55,20 +55,15 @@ phases:
         }
 
         # Fetch the latest task definition ARN for dev environment and store it in a variable
+        # Update the SSM with the latest task definition ARN for the dev environment
         DEV_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$DEV_TASK_FAMILY")
         PROD_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$PROD_TASK_FAMILY")
-        
-        # Update the SSM with the latest task definition ARN for the dev environment
         update_ssm_with_task_definition_arn "dev" "$DEV_TASK_FAMILY" "$DEV_SSM_TASK_DEFINITION_ARN_KEY"
         update_ssm_with_task_definition_arn "prod" "$PROD_TASK_FAMILY" "$PROD_SSM_TASK_DEFINITION_ARN_KEY"
- 
-      
-      # Login to Amazon ECR
-      - echo "==========================================================================="
-      - echo "Logging in to Amazon ECR for $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com..."
-      - echo "==========================================================================="
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com || { echo "ECR login failed."; exit 1; }
-      - echo "Successfully logged into Amazon ECR."
+
+      # Get docker hub credentials
+      - DOCKER_HUB_USERNAME=$(aws ssm get-parameter --name $SSM_DOCKER_HUB_USERNAME_KEY --query "Parameter.Value" --output text)
+      - DOCKER_HUB_PASSWORD=$(aws ssm get-parameter --name $SSM_DOCKER_HUB_PASSWORD_KEY --query "Parameter.Value" --output text)
 
       - echo "==========================================================================="
       - echo "Pre-build phase completed."
@@ -80,8 +75,11 @@ phases:
       - echo "Starting Build Phase for Backend..."
       - echo "==========================================================================="
 
-      # Build Docker Image for dev environment 
-      - echo "Building Docker image for dev environment..."
+      # Login to Docker Hub
+      - echo "$DOCKER_HUB_PASSWORD" | docker login --username $DOCKER_HUB_USERNAME --password-stdin  
+
+      # Build Docker Image            
+      - echo "Building Docker image ..."
       - docker build -t $ECR_REPOSITORY_URL:$COMMIT_HASH -t $ECR_REPOSITORY_URL:latest $APP_REPOSITORY_PATH || { echo "Docker build for dev failed."; exit 1; }
       - echo "Docker image built and tagged as $ECR_REPOSITORY_URL:$COMMIT_HASH."
 
@@ -172,10 +170,19 @@ phases:
       - echo "Starting Post-build Phase..."
       - echo "==========================================================================="
 
+      # Login to Amazon ECR
+      - docker logout 
+      - echo "==========================================================================="
+      - echo "Logging in to Amazon ECR for $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com..."
+      - echo "==========================================================================="
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com || { echo "ECR login failed."; exit 1; }
+      - echo "Successfully logged into Amazon ECR."
+
       - echo "Build completed on `date`"
       - echo "Pushing the Docker images to ECR..."
       - docker push $ECR_REPOSITORY_URL:$COMMIT_HASH || { echo "Failed to push Docker image for dev."; exit 1; }
       - echo "Docker images pushed successfully to ECR."
+      - docker logout
       - echo "==========================================================================="
       - echo "Post-build phase completed."
       - echo "==========================================================================="

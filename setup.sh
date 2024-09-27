@@ -19,6 +19,9 @@ PROD_APP_BACKEND_DOMAIN_NAME=$(yq e '.app_backend_domain_name' $PROD_CONFIG)
 AWS_REGION=$(yq e '.aws_region_name' $SHARED_CONFIG)
 AWS_ACCOUNT_ID=$(yq e '.aws_account_id' $SHARED_CONFIG)
 AWS_PROFILE=$(yq e '.aws_profile_name' $SHARED_CONFIG)
+SSM_DOCKER_HUB_USERNAME_KEY=$(yq e '.ssm_params.codebuild_docker_hub_username' $SHARED_CONFIG)
+SSM_DOCKER_HUB_PASSWORD_KEY=$(yq e '.ssm_params.codebuild_docker_hub_password' $SHARED_CONFIG)
+SSM_CODESTAR_CONNECTION_ARN_KEY=$(yq e '.ssm_params.codepipeline_codestarconnection_arn' $SHARED_CONFIG)
 
 BACKEND_ECR_REPOSITORY_NAME=$(yq e '.cicd.ecr_backend_repository_name' $SHARED_CONFIG)
 
@@ -29,6 +32,41 @@ BACKEND_ECR_REPOSITORY_URL="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.co
 ####################################################################################
 # !!!!!!!!!!!! Important
 # Make sure first terraform state backend resources are setup properly (s3 bucket and dynamodb table)
+
+
+####################################################################################
+############## Set up SSM parameters
+####################################################################################
+# Function to check if environment variable exists or prompt for input
+set_ssm_param_from_env_or_input() {
+    local param_key=$1
+    local env_var_name=$2
+    local profile=$3
+    local region=$4
+
+    # Get the value of the environment variable
+    local param_value=${env_var_name}
+
+    if [ -z "$param_value" ]; then
+        # If the environment variable is not set, prompt for user input
+        read -p "Export an environment variable $env_var_name or enter value for $param_key: " param_value
+    fi
+
+    # Set the parameter in SSM Parameter Store
+    aws ssm put-parameter --name "$param_key" --value "$param_value" --profile "$profile" --region "$region" --type String --overwrite > /dev/null 2>&1
+
+    if [ $? -eq 0 ]; then
+        echo "Successfully set SSM parameter: $param_key with value: $param_value"
+    else
+        echo "Failed to set SSM parameter: $param_key"
+        return 1
+    fi
+}
+
+# Use the environment variable if set, otherwise ask the user
+set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_USERNAME_KEY" "$DOCKER_HUB_USERNAME" "$AWS_PROFILE" "$AWS_REGION"
+set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_PASSWORD_KEY" "$DOCKER_HUB_PASSWORD" "$AWS_PROFILE" "$AWS_REGION"
+set_ssm_param_from_env_or_input "$SSM_CODESTAR_CONNECTION_ARN_KEY" "$CODESTAR_CONNECTION_ARN" "$AWS_PROFILE" "$AWS_REGION"
 
 
 
@@ -96,3 +134,5 @@ build_and_push_image $BACKEND_APP_DIR "dev" $BACKEND_ECR_REPOSITORY_URL
 # build_and_push_image $BACKEND_APP_DIR "prod" $BACKEND_ECR_REPOSITORY_URL
 
 echo "Build and push process completed for both dev and prod environments."
+
+

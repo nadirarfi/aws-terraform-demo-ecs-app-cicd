@@ -104,12 +104,20 @@ module "codebuild_backend" {
       name  = "AWS_ASSUMABLE_ROLE_ARN"
       value = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.cicd.codebuild_backend_project_name}-assumable-role"
     },
+    # Docker Hub credentials
+    {
+      name  = "SSM_DOCKER_HUB_USERNAME_KEY"
+      value = local.shared.ssm_params.codebuild_docker_hub_username
+    },
+    {
+      name  = "SSM_DOCKER_HUB_PASSWORD_KEY"
+      value = local.shared.ssm_params.codebuild_docker_hub_password
+    },
     # ECR Repository Variables
     {
       name  = "ECR_REPOSITORY_URL"
       value = data.aws_ssm_parameter.ecr_backend_repository_url.value
     },
-
     # Application Repository Path
     {
       name  = "APP_REPOSITORY_PATH"
