@@ -21,7 +21,7 @@ graph_attr = {
 diagram_title = "AWS CI/CD Pipeline"
 codepipeline_title = "CodePipeline"
 
-with Diagram(diagram_title, direction="LR", graph_attr=graph_attr, outformat="jpg", show=False):
+with Diagram(diagram_title, direction="LR", filename="cicd", graph_attr=graph_attr, outformat="jpg", show=False):
     with Cluster("CI/CD Pipeline (Big Stack)", graph_attr=graph_attr):
 
         # CodePipeline 

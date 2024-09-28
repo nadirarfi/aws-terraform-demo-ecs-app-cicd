@@ -8,12 +8,12 @@ cd terraform
 
 # Define resources for each category
 infrastructure_resources=(
-    # "vpc"
-    # "security_groups"
-    # "alb_target_groups"
-    # "alb"
-    # "ecs_cluster"
-    # "db"
+    "vpc"
+    "security_groups"
+    "alb_target_groups"
+    "alb"
+    "ecs_cluster"
+    "db"
 )
 
 application_resources=(

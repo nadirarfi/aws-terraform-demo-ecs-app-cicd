@@ -8,12 +8,12 @@ cd terraform
 
 # Define resources for each category
 infrastructure_resources=(
-    # "vpc"
-    # "security_groups"
-    # "alb_target_groups"
-    # "alb"
-    # "ecs_cluster"
-    # "db"
+    "vpc"
+    "security_groups"
+    "alb_target_groups"
+    "alb"
+    "ecs_cluster"
+    "db"
 )
 
 application_resources=(
@@ -55,5 +55,5 @@ deploy_all() {
 
 # Apply resources for dev and prod environments
 deploy_all "dev"
-# deploy_all "prod"
+deploy_all "prod"
 deploy_all "shared"
