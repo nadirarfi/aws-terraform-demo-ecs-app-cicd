@@ -46,7 +46,7 @@ else
     while true; do
         # Step 1: Select an Environment
         prompt "STEP 1: Select an Environment"
-        echo "Please select the environment (e.g., dev, prod) you want to work with."
+        echo "Please select the environment (e.g., test, prod) you want to work with."
         env=$(handle_selection "Environment" "$(colorize_options $(ls live | grep -v -i 'README') "Go Back")" "")
 
         if [[ $? -eq 1 ]]; then

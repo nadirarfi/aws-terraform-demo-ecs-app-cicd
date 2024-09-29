@@ -136,6 +136,10 @@ cd /terraform/scripts/
 ./setup.sh
 ```
 
+- Codestar connection can be created on the AWS console, use the generated ARN and pass it as an environment variable. This connection is used to manage access to allow codepipeline to retrieve source code from github.
+![](./doc/diagrams/codestar_connection.jpg)
+
+
 ## Deployment
 
 ### How to manage a resource? 
@@ -229,6 +233,14 @@ You can deploy resources interactively by using the interactive script.
 cd terraform/scripts
 ./interactive.sh
 ```
+#### Select environment
+![Manage infrastructure in an interactive way](./doc/diagrams/interactive_1.jpg)
+#### Select layer or resource group
+![](./doc/diagrams/interactive_2.jpg)
+#### Select resource
+![](./doc/diagrams/interactive_3.jpg)
+#### Select terraform action
+![](./doc/diagrams/interactive_4.jpg)
 
 
 ### Generate Terraform Modules Documentation
