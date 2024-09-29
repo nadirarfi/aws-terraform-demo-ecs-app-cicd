@@ -1,18 +1,15 @@
 {
-  "test": {
+
+  "prod": {
     "infrastructure": [
       "vpc",
       "security_groups",
       "alb_target_groups",
       "alb",
       "ecs_cluster",
-      "db"
+      "db"      
     ],
     "application": ["backend", "frontend"]
-  },
-  "prod": {
-    "infrastructure": [],
-    "application": []
   },
   "shared": {
     "cicd": ["codebuild", "codedeploy", "codepipeline"]

@@ -1,9 +1,22 @@
 #!/bin/bash
 
 ####################################################################################
+############## Install utilities
+####################################################################################
+echo "Install utilities (necessary for scripting and visualization)"
+sudo apt-get install yq jq fzf tree
+
+####################################################################################
+############## Terraform State
+####################################################################################
+# Make sure first terraform state backend resources are setup properly (s3 bucket and dynamodb table)
+terraform init
+terraform plan
+terraform apply
+
+####################################################################################
 ############## Configuration
 ####################################################################################
-
 # Load environment-specific variables from shared.yml
 SHARED_CONFIG=../config/shared.yml
 TEST_CONFIG=../config/test.yml
@@ -18,17 +31,10 @@ AWS_PROFILE=$(yq e '.aws_profile_name' $SHARED_CONFIG)
 SSM_DOCKER_HUB_USERNAME_KEY=$(yq e '.ssm_params.codebuild_docker_hub_username' $SHARED_CONFIG)
 SSM_DOCKER_HUB_PASSWORD_KEY=$(yq e '.ssm_params.codebuild_docker_hub_password' $SHARED_CONFIG)
 SSM_CODESTAR_CONNECTION_ARN_KEY=$(yq e '.ssm_params.codepipeline_codestarconnection_arn' $SHARED_CONFIG)
-
 BACKEND_ECR_REPOSITORY_NAME=$(yq e '.cicd.ecr_backend_repository_name' $SHARED_CONFIG)
 
 # Construct the ECR repository URLs dynamically
 BACKEND_ECR_REPOSITORY_URL="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${BACKEND_ECR_REPOSITORY_NAME}"
-####################################################################################
-############## Terraform State
-####################################################################################
-# !!!!!!!!!!!! Important
-# Make sure first terraform state backend resources are setup properly (s3 bucket and dynamodb table)
-
 
 ####################################################################################
 ############## Set up SSM parameters

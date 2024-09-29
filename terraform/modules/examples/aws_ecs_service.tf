@@ -6,7 +6,7 @@ module "aws_ecs_service" {
   ecs_cluster_id = ""
   ecs_service_security_groups_id = []
   ecs_service_subnets_id = []
-  ecs_task_definition_arn = ""
+  ecs_task_definition_name = ""
   target_group_arn = ""
   ecs_service_desired_count = 1
   ecs_health_check_grace_period_seconds = 15

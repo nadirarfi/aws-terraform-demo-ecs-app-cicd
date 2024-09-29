@@ -94,24 +94,9 @@ This project follows a comprehensive CI/CD pipeline to automate the build, test,
 Before starting, ensure the following tools are installed:
 
 - **Docker**: To run containerized applications.
-- **Utilities**: Necessary for scripting and visualization:
-  
-  ```bash
-  sudo apt-get install fzf tree yq
-  ```
+- **Terraform 1.5.3**: To manage infrastructure
 
-### 1. Prepare Terraform State Remote Backend
-
-This step sets up the remote backend for storing Terraform state files, leveraging an S3 bucket and a DynamoDB table for state locking. This ensures that infrastructure can be managed in a consistent and safe manner by multiple users.
-
-```bash
-cd /terraform/live/shared/setup/terraform_state
-terraform init
-terraform plan
-terraform apply
-```
-
-### 2. Modify Configuration Files
+### 1. Modify Configuration Files
 
 You may need to modify certain YAML configuration files to customize the setup for different environments (e.g., test, prod). In particular, make sure to setup your aws configuration in shared configuration file used. Ideally, it would be better to use separate aws account for each environment.  
 
@@ -126,15 +111,23 @@ aws_tf_state_s3_bucket_name: <aws_tf_state_s3_bucket_name>
 aws_tf_state_dynamodb_table_name: <aws_tf_state_dynamodb_table_name>
 aws_route53_dns_zone_name: <aws_route53_dns_zone_name>
 ```
+### 2. Prepare Terraform State Remote Backend
+```
+cd
+```
+### 1. Execute the setup script
 
-### 3. Setup Necessary SSM Parameters and ECR Repository
+- Install some utilities related to handling json/yaml files such as yq and jq 
 
-You'll need to set up SSM parameters for secrets management (like Docker credentials) and prepare the ECR repositories for storing Docker images.
+- The script also sets up the remote backend for storing Terraform state files, leveraging an S3 bucket and a DynamoDB table for state locking. This ensures that infrastructure can be managed in a consistent and safe manner by multiple users.
+
+- The script also sets up SSM parameters for secrets management (like Docker credentials) and prepare the ECR repositories for storing Docker images.
 
 ```bash
 export DOCKER_HUB_USERNAME=""
 export DOCKER_HUB_PASSWORD=""
 export CODESTAR_CONNECTION_ARN=""
+cd /terraform/scripts/
 ./setup.sh
 ```
 

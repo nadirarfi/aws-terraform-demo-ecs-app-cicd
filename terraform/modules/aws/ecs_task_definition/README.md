@@ -60,4 +60,4 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_ecs_task_definition_arn"></a> [ecs\_task\_definition\_arn](#output\_ecs\_task\_definition\_arn) | The ARN of the ECS task definition. |
+| <a name="output_task_def_arn"></a> [task\_def\_arn](#output\_task\_def\_arn) | The ARN of the ECS task definition. |

@@ -17,6 +17,7 @@ No modules.
 | Name | Type |
 |------|------|
 | [aws_ecs_service.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
+| [aws_ecs_task_definition.ecs_task_def](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ecs_task_definition) | data source |
 
 ## Inputs
 
@@ -32,7 +33,7 @@ No modules.
 | <a name="input_ecs_service_name"></a> [ecs\_service\_name](#input\_ecs\_service\_name) | The name of the ECS service. | `string` | `"ecs-service"` | no |
 | <a name="input_ecs_service_security_groups_id"></a> [ecs\_service\_security\_groups\_id](#input\_ecs\_service\_security\_groups\_id) | The security group IDs for the ECS service. | `list(string)` | `[]` | no |
 | <a name="input_ecs_service_subnets_id"></a> [ecs\_service\_subnets\_id](#input\_ecs\_service\_subnets\_id) | The subnet IDs for the ECS service. | `list(string)` | `[]` | no |
-| <a name="input_ecs_task_definition_arn"></a> [ecs\_task\_definition\_arn](#input\_ecs\_task\_definition\_arn) | The ARN of the ECS task definition to use for the service. | `string` | `""` | no |
+| <a name="input_ecs_task_definition_name"></a> [ecs\_task\_definition\_name](#input\_ecs\_task\_definition\_name) | The name of the ECS task definition to use for the service. | `string` | `""` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | A map of additional tags to add to all resources. | `map(string)` | `{}` | no |
 | <a name="input_target_group_arn"></a> [target\_group\_arn](#input\_target\_group\_arn) | The ARN of the target group to attach to the ECS service. | `string` | `""` | no |
 
