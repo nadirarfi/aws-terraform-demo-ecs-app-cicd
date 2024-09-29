@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# Change directory
-cd terraform
-
 # Import bash scripts
-. ./scripts/helpers.sh
-. ./scripts/terraform.sh
+source ./helpers/functions.sh
+source ./helpers/tf_actions.sh
 
+cd ../ # Ensure we are at the terraform directory
 
 # Execute actions
 execute_actions() {

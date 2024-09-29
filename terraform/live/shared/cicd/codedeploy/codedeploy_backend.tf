@@ -14,13 +14,13 @@ module "aws_codedeploy_backend" {
   codedeploy_app_deployment_type                 = "BLUE_GREEN"
 
   codedeploy_app_environments = {
-    # DEV Deployment Group
-    dev = {
-      ecs_cluster_name   = local.dev.app_backend_ecs_cluster_name
-      ecs_service_name   = local.dev.app_backend_ecs_service_name
-      blue_target_group  = local.dev.app_backend_blue_alb_target_group_name
-      green_target_group = local.dev.app_backend_green_alb_target_group_name
-      alb_listener_arn   = data.aws_ssm_parameter.dev_app_backend_alb_https_listener_arn.value
+    # test Deployment Group
+    test = {
+      ecs_cluster_name   = local.test.app_backend_ecs_cluster_name
+      ecs_service_name   = local.test.app_backend_ecs_service_name
+      blue_target_group  = local.test.app_backend_blue_alb_target_group_name
+      green_target_group = local.test.app_backend_green_alb_target_group_name
+      alb_listener_arn   = data.aws_ssm_parameter.test_app_backend_alb_https_listener_arn.value
       sns_topic_arn      = ""
     },
     # PROD Deployment Group

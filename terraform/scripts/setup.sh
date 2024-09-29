@@ -3,19 +3,15 @@
 ####################################################################################
 ############## Configuration
 ####################################################################################
-# Change directory
-cd terraform
 
 # Load environment-specific variables from shared.yml
-SHARED_CONFIG=./config/shared.yml
-DEV_CONFIG=./config/dev.yml
-PROD_CONFIG=./config/prod.yml
+SHARED_CONFIG=../config/shared.yml
+TEST_CONFIG=../config/test.yml
+PROD_CONFIG=../config/prod.yml
 
-BACKEND_APP_DIR=../apps/backend   # Path to the backend app directory
+BACKEND_APP_DIR=../../apps/backend   # Path to the backend app directory
 
 # Using yq to extract values from the YAML file
-DEV_APP_BACKEND_DOMAIN_NAME=$(yq e '.app_backend_domain_name' $DEV_CONFIG)
-PROD_APP_BACKEND_DOMAIN_NAME=$(yq e '.app_backend_domain_name' $PROD_CONFIG)
 AWS_REGION=$(yq e '.aws_region_name' $SHARED_CONFIG)
 AWS_ACCOUNT_ID=$(yq e '.aws_account_id' $SHARED_CONFIG)
 AWS_PROFILE=$(yq e '.aws_profile_name' $SHARED_CONFIG)
@@ -49,7 +45,7 @@ set_ssm_param_from_env_or_input() {
 
     if [ -z "$param_value" ]; then
         # If the environment variable is not set, prompt for user input
-        read -p "Export an environment variable $env_var_name or enter value for $param_key: " param_value
+        read -p "Enter value for $param_key: " param_value
     fi
 
     # Set the parameter in SSM Parameter Store
@@ -64,9 +60,9 @@ set_ssm_param_from_env_or_input() {
 }
 
 # Use the environment variable if set, otherwise ask the user
-set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_USERNAME_KEY" "$DOCKER_HUB_USERNAME" "$AWS_PROFILE" "$AWS_REGION"
-set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_PASSWORD_KEY" "$DOCKER_HUB_PASSWORD" "$AWS_PROFILE" "$AWS_REGION"
-set_ssm_param_from_env_or_input "$SSM_CODESTAR_CONNECTION_ARN_KEY" "$CODESTAR_CONNECTION_ARN" "$AWS_PROFILE" "$AWS_REGION"
+# set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_USERNAME_KEY" "$DOCKER_HUB_USERNAME" "$AWS_PROFILE" "$AWS_REGION"
+# set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_PASSWORD_KEY" "$DOCKER_HUB_PASSWORD" "$AWS_PROFILE" "$AWS_REGION"
+# set_ssm_param_from_env_or_input "$SSM_CODESTAR_CONNECTION_ARN_KEY" "$CODESTAR_CONNECTION_ARN" "$AWS_PROFILE" "$AWS_REGION"
 
 
 
@@ -93,45 +89,30 @@ ecr_login() {
 # Function to build and push a Docker image
 build_and_push_image() {
   local app_dir=$1
-  local env=$2
-  local ecr_repository_url=$3
-  local build_args=${4:-""}  # Optional build arguments
+  local ecr_repository_url=$2
+  local build_args=${3:-""}  # Optional build arguments
 
-  local image_tag="$env-latest"
+  local image_tag="latest"
   echo $app_dir
-  echo $env
   echo $ecr_repository_url
 
-  echo "Building Docker image for $env environment in $app_dir..."
+  echo "Building Docker image in $app_dir..."
   cd $app_dir
   docker build $build_args -t $ecr_repository_url:$image_tag .
-  if [ $? -ne 0 ]; then
-    echo "Docker build failed for $env"
-    exit 1
-  fi
-  echo "Docker image for $env built successfully."
-
-  echo "Pushing Docker image for $env environment to ECR..."
+  echo "Pushing Docker image to ECR..."
   docker push $ecr_repository_url:$image_tag
   if [ $? -ne 0 ]; then
-    echo "Failed to push Docker image for $env"
+    echo "Failed to push Docker image"
     exit 1
   fi
-  echo "Docker image for $env pushed to ECR successfully."
+  echo "Docker image pushed to ECR successfully."
 }
 
 # Main script logic
 ecr_login
 
-#################################### Steps for dev environment
-echo "Processing dev environment..."
-# Build and push backend for dev
-build_and_push_image $BACKEND_APP_DIR "dev" $BACKEND_ECR_REPOSITORY_URL
-
-#################################### Steps for prod environment
-# echo "Processing prod environment..."
-# # Build and push backend for prod
-# build_and_push_image $BACKEND_APP_DIR "prod" $BACKEND_ECR_REPOSITORY_URL
+# Build and push backend 
+build_and_push_image $BACKEND_APP_DIR $BACKEND_ECR_REPOSITORY_URL
 
 echo "Build and push process completed for both dev and prod environments."
 

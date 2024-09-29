@@ -22,7 +22,7 @@ graph_attr = {
     "dpi": "300"  # Set DPI (lower values result in smaller images)
 }
 # Diagram title
-diagram_title = "AWS Infrastructure Arechitecture"
+diagram_title = "AWS Infrastructure Architecture"
 
 with Diagram(diagram_title, direction="RL", filename="infrastructure", graph_attr=graph_attr, outformat="jpg", show=False):
     cloud_engineer = User("Cloud Engineer")
@@ -34,7 +34,10 @@ with Diagram(diagram_title, direction="RL", filename="infrastructure", graph_att
         cloudfront = CloudFront("CloudFront\nDistribution (CDN)")
         frontend_s3 = S3("S3 bucket\n(frontend static files)")
 
-        # with Cluster("DNS",graph_attr=graph_attr, direction="TB"):
+        with Cluster("Terraform state \nremote backend",graph_attr=graph_attr):
+            s3_tf_state = S3("S3 Backend")
+            dynamodb_tf_state = Dynamodb("DynamoDB table\nlocks")
+            terraform_state = [s3_tf_state, dynamodb_tf_state]
 
         route53 = Route53("Route 53\nHosted Zone\nnadirarfi.com")
         acm = ACM("AWS Certificate\nManager")
@@ -67,6 +70,7 @@ with Diagram(diagram_title, direction="RL", filename="infrastructure", graph_att
     ecs_tasks >> dynamodb_table
 
     users >> route53
+    iac >> terraform_state
 
     route53 \
         - Edge(style="dashed")\
@@ -83,6 +87,10 @@ with Diagram(diagram_title, direction="RL", filename="infrastructure", graph_att
 
     cloud_engineer >> iac 
     iac \
-        - Edge(style="dashed", forward=True, reverse=True, color="purple")\
+        - Edge(style="dashed", forward=True, reverse=False, color="purple")\
         - ecs_service      
+    
+    s3_tf_state \
+        - Edge(style="dashed", color="purple")\
+        - dynamodb_tf_state
     

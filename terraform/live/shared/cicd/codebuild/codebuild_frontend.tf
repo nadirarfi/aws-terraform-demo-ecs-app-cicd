@@ -27,8 +27,8 @@ module "codebuild_frontend" {
         "s3:List*"
       ]
       resources = [
-        "arn:aws:s3:::${local.dev.app_frontend_s3_bucket_name}",
-        "arn:aws:s3:::${local.dev.app_frontend_s3_bucket_name}/*",
+        "arn:aws:s3:::${local.test.app_frontend_s3_bucket_name}",
+        "arn:aws:s3:::${local.test.app_frontend_s3_bucket_name}/*",
         "arn:aws:s3:::${local.prod.app_frontend_s3_bucket_name}",
         "arn:aws:s3:::${local.prod.app_frontend_s3_bucket_name}/*",
         "arn:aws:s3:::${local.cicd.codepipeline_name}-artifact-bucket/*",
@@ -123,10 +123,10 @@ module "codebuild_frontend" {
       name  = "APP_REPOSITORY_PATH"
       value = local.cicd.app_frontend_repository_path
     },
-    # DEV Environment Variables for Frontend
+    # test Environment Variables for Frontend
     {
-      name  = "DEV_APP_FRONTEND_BUCKET_URI"
-      value = "s3://${local.dev.app_frontend_s3_bucket_name}/"
+      name  = "test_APP_FRONTEND_BUCKET_URI"
+      value = "s3://${local.test.app_frontend_s3_bucket_name}/"
     },
     # PROD Environment Variables for Frontend
     {

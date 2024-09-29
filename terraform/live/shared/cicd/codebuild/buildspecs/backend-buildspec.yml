@@ -8,7 +8,7 @@ phases:
       - echo "==========================================================================="
       - echo "Starting Pre-build Phase for Backend..."
       - echo "==========================================================================="
-      
+
       - echo "Listing the current directory contents:"
       - ls -lt || { echo "Failed to list directory contents."; exit 1; }
 
@@ -20,8 +20,8 @@ phases:
 
       # Setup artifacts and template paths
       - export ARTIFACTS_DIRECTORY=terraform/artifacts
-      - export TASK_DEF_TEMPLATE=terraform/templates/backend_task_definition.tpl.json
-      - export APP_SPEC_TEMPLATE=terraform/templates/backend-appspec.tpl.yml
+      - export TASK_DEF_TEMPLATE=terraform/live/shared/codebuild/templates/backend_task_definition.tpl.json
+      - export APP_SPEC_TEMPLATE=terraform/live/shared/codebuild/templates/backend-appspec.tpl.yml
       - export COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
 
       - echo "==========================================================================="
@@ -54,11 +54,11 @@ phases:
             echo "SSM Parameter updated with the latest Task Definition ARN for $env environment."
         }
 
-        # Fetch the latest task definition ARN for dev environment and store it in a variable
-        # Update the SSM with the latest task definition ARN for the dev environment
-        DEV_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$DEV_TASK_FAMILY")
+        # Fetch the latest task definition ARN for test environment and store it in a variable
+        # Update the SSM with the latest task definition ARN for the test environment
+        test_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$test_TASK_FAMILY")
         PROD_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$PROD_TASK_FAMILY")
-        update_ssm_with_task_definition_arn "dev" "$DEV_TASK_FAMILY" "$DEV_SSM_TASK_DEFINITION_ARN_KEY"
+        update_ssm_with_task_definition_arn "test" "$test_TASK_FAMILY" "$test_SSM_TASK_DEFINITION_ARN_KEY"
         update_ssm_with_task_definition_arn "prod" "$PROD_TASK_FAMILY" "$PROD_SSM_TASK_DEFINITION_ARN_KEY"
 
       # Get docker hub credentials
@@ -76,11 +76,11 @@ phases:
       - echo "==========================================================================="
 
       # Login to Docker Hub
-      - echo "$DOCKER_HUB_PASSWORD" | docker login --username $DOCKER_HUB_USERNAME --password-stdin  
+      - echo "$DOCKER_HUB_PASSWORD" | docker login --username $DOCKER_HUB_USERNAME --password-stdin
 
-      # Build Docker Image            
+      # Build Docker Image
       - echo "Building Docker image ..."
-      - docker build -t $ECR_REPOSITORY_URL:$COMMIT_HASH -t $ECR_REPOSITORY_URL:latest $APP_REPOSITORY_PATH || { echo "Docker build for dev failed."; exit 1; }
+      - docker build -t $ECR_REPOSITORY_URL:$COMMIT_HASH -t $ECR_REPOSITORY_URL:latest $APP_REPOSITORY_PATH || { echo "Docker build for test failed."; exit 1; }
       - echo "Docker image built and tagged as $ECR_REPOSITORY_URL:$COMMIT_HASH."
 
       # Function definitions and calls
@@ -100,7 +100,7 @@ phases:
           local task_role_arn_var="${env^^}_TASK_ROLE_ARN"
           local task_execution_role_arn_var="${env^^}_TASK_EXECUTION_ROLE_ARN"
           local healthcheck_path_var="${env^^}_HEALTHCHECK_PATH"
-          
+
           echo "==========================================================================="
           echo "Setting up task definition for $env..."
           echo "==========================================================================="
@@ -149,19 +149,19 @@ phases:
           echo "$env AppSpec prepared successfully."
         }
 
-        # Call the functions for both dev and prod
-        setup_task_definition "dev"
+        # Call the functions for both test and prod
+        setup_task_definition "test"
         setup_task_definition "prod"
-        setup_appspec "dev"
+        setup_appspec "test"
         setup_appspec "prod"
 
       # Verify the generated task definitions and AppSpec files
       - echo "==========================================================================="
       - echo "Verifying the generated task definitions and AppSpec files..."
       - echo "==========================================================================="
-      - cat $ARTIFACTS_DIRECTORY/dev_backend_task_def.json || { echo "Failed to read dev task definition."; exit 1; }
+      - cat $ARTIFACTS_DIRECTORY/test_backend_task_def.json || { echo "Failed to read test task definition."; exit 1; }
       - cat $ARTIFACTS_DIRECTORY/prod_backend_task_def.json || { echo "Failed to read prod task definition."; exit 1; }
-      - cat $ARTIFACTS_DIRECTORY/dev_backend_appspec.yml || { echo "Failed to read dev AppSpec file."; exit 1; }
+      - cat $ARTIFACTS_DIRECTORY/test_backend_appspec.yml || { echo "Failed to read test AppSpec file."; exit 1; }
       - cat $ARTIFACTS_DIRECTORY/prod_backend_appspec.yml || { echo "Failed to read prod AppSpec file."; exit 1; }
 
   post_build:
@@ -171,7 +171,7 @@ phases:
       - echo "==========================================================================="
 
       # Login to Amazon ECR
-      - docker logout 
+      - docker logout
       - echo "==========================================================================="
       - echo "Logging in to Amazon ECR for $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com..."
       - echo "==========================================================================="
@@ -180,7 +180,7 @@ phases:
 
       - echo "Build completed on `date`"
       - echo "Pushing the Docker images to ECR..."
-      - docker push $ECR_REPOSITORY_URL:$COMMIT_HASH || { echo "Failed to push Docker image for dev."; exit 1; }
+      - docker push $ECR_REPOSITORY_URL:$COMMIT_HASH || { echo "Failed to push Docker image for test."; exit 1; }
       - echo "Docker images pushed successfully to ECR."
       - docker logout
       - echo "==========================================================================="
@@ -189,9 +189,9 @@ phases:
 
 artifacts:
   files:
-    - dev_backend_task_def.json
+    - test_backend_task_def.json
     - prod_backend_task_def.json
-    - dev_backend_appspec.yml
+    - test_backend_appspec.yml
     - prod_backend_appspec.yml
   base-directory: "$ARTIFACTS_DIRECTORY"
   discard-paths: yes

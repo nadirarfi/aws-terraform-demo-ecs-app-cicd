@@ -124,54 +124,54 @@ module "codebuild_backend" {
       value = local.cicd.app_backend_repository_path
     },
 
-    # DEV Environment Variables
+    # test Environment Variables
     {
-      name  = "DEV_TASK_FAMILY"
-      value = local.dev.app_backend_ecs_task_def_name
+      name  = "test_TASK_FAMILY"
+      value = local.test.app_backend_ecs_task_def_name
     },
     {
-      name  = "DEV_SSM_TASK_DEFINITION_ARN_KEY"
-      value = local.dev.ssm_params.app_backend_ecs_task_def_arn
+      name  = "test_SSM_TASK_DEFINITION_ARN_KEY"
+      value = local.test.ssm_params.app_backend_ecs_task_def_arn
     },
     {
-      name  = "DEV_CONTAINER_NAME"
-      value = local.dev.app_backend_ecs_task_def_container_name
+      name  = "test_CONTAINER_NAME"
+      value = local.test.app_backend_ecs_task_def_container_name
     },
     {
-      name  = "DEV_CONTAINER_PORT"
-      value = local.dev.app_backend_port_number
+      name  = "test_CONTAINER_PORT"
+      value = local.test.app_backend_port_number
     },
     {
-      name  = "DEV_HEALTHCHECK_PATH"
-      value = local.dev.app_backend_health_check_path
+      name  = "test_HEALTHCHECK_PATH"
+      value = local.test.app_backend_health_check_path
     },
     {
-      name  = "DEV_CONTAINER_CPU"
-      value = local.dev.app_backend_ecs_task_def_cpu
+      name  = "test_CONTAINER_CPU"
+      value = local.test.app_backend_ecs_task_def_cpu
     },
     {
-      name  = "DEV_CONTAINER_MEMORY_RESERVATION"
-      value = local.dev.app_backend_ecs_task_def_memory
+      name  = "test_CONTAINER_MEMORY_RESERVATION"
+      value = local.test.app_backend_ecs_task_def_memory
     },
     {
-      name  = "DEV_AWSLOGS_GROUP"
-      value = local.dev.app_backend_ecs_task_def_log_group_name
+      name  = "test_AWSLOGS_GROUP"
+      value = local.test.app_backend_ecs_task_def_log_group_name
     },
     {
-      name  = "DEV_AWSLOGS_STREAM_PREFIX"
-      value = local.dev.app_backend_ecs_task_def_log_stream_prefix
+      name  = "test_AWSLOGS_STREAM_PREFIX"
+      value = local.test.app_backend_ecs_task_def_log_stream_prefix
     },
     {
-      name  = "DEV_DYNAMODB_TABLE_NAME"
-      value = local.dev.app_backend_dynamodb_table_name
+      name  = "test_DYNAMODB_TABLE_NAME"
+      value = local.test.app_backend_dynamodb_table_name
     },
     {
-      name  = "DEV_TASK_ROLE_ARN"
-      value = data.aws_ssm_parameter.dev_app_backend_ecs_task_def_role_arn.value
+      name  = "test_TASK_ROLE_ARN"
+      value = data.aws_ssm_parameter.test_app_backend_ecs_task_def_role_arn.value
     },
     {
-      name  = "DEV_TASK_EXECUTION_ROLE_ARN"
-      value = data.aws_ssm_parameter.dev_app_backend_ecs_task_def_execution_role_arn.value
+      name  = "test_TASK_EXECUTION_ROLE_ARN"
+      value = data.aws_ssm_parameter.test_app_backend_ecs_task_def_execution_role_arn.value
     },
     # PROD Environment Variables
     {

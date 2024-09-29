@@ -1,15 +1,14 @@
 
 # Project Overview
 
-This project is a fully automated, scalable, and highly available web application built using AWS services. It follows microservices principles with a decoupled frontend and backend. The application is containerized using Docker and orchestrated by AWS ECS (Elastic Container Service). It leverages a robust CI/CD pipeline for deployment, ensuring rapid delivery and quality assurance.
+This project is a fully automated, scalable, and highly available web application built on AWS cloud infrastructure. The backend is a Python Django API containerized using Docker and orchestrated through Amazon ECS (Elastic Container Service), ensuring efficient resource management and high availability. The backend service also interacts with an Amazon DynamoDB table for a fast serverless database. On the other hand, the frontend is a React JS application,  built and distributed globally via AWS CloudFront for low-latency access. The CI/CD pipeline integrates AWS CodePipeline, AWS CodeBuild for building both the frontend and backend, AWS CodeDeploy for blue/green deployment, and Amazon Elastic Container Registry (ECR) for storing Docker images. 
 
-Both the frontend and backend services are continuously integrated and deployed using an automated AWS CodePipeline, which connects various AWS services such as CodeBuild, CodeDeploy, and Elastic Container Registry (ECR). The frontend assets are distributed globally using CloudFront, and backend services interact with a DynamoDB database for persistent storage.
 
 ---
 
 ## Goal
 
-The goal of this project is to build a resilient web application with automated deployments and scalable infrastructure. By using AWS services and Infrastructure as Code (IaC) with Terraform, the architecture ensures easy manageability, repeatable infrastructure provisioning, and seamless integration across environments (development, test, and production).
+The goal of this project is to build a resilient web application with automated deployments and scalable infrastructure. By using AWS services and Infrastructure as Code (IaC) with Terraform, the architecture ensures easy manageability, repeatable infrastructure provisioning, and seamless integration across environments (test and production).
 
 ## Benefits
 
@@ -82,7 +81,7 @@ This project follows a comprehensive CI/CD pipeline to automate the build, test,
 ### Benefits of the CI/CD Pipeline:
 
 - **Automated Workflow**: The pipeline ensures that every code change is built, tested, and deployed without manual intervention.
-- **Consistent Environments**: Development, test, and production environments follow the same deployment steps, reducing the risk of deployment issues.
+- **Consistent Environments**: Test and production environments follow the same deployment steps, reducing the risk of deployment issues.
 - **Rollback Capability**: The blue/green deployment strategy ensures easy rollback in case of failures, without affecting the production environment.
 - **Manual Gate**: A manual approval step ensures that human oversight is involved in the final stages, adding a layer of security to the release process.
 
@@ -114,7 +113,19 @@ terraform apply
 
 ### 2. Modify Configuration Files
 
-You may need to modify certain YAML configuration files to customize the setup for different environments (e.g., dev, prod).
+You may need to modify certain YAML configuration files to customize the setup for different environments (e.g., test, prod). In particular, make sure to setup your aws configuration in shared configuration file used. Ideally, it would be better to use separate aws account for each environment.  
+
+```yaml
+
+##################################### AWS Configuration
+aws_region_name: <aws_region_name>
+aws_region_code: <aws_region_code>
+aws_account_id: <aws_account_id>
+aws_profile_name: <aws_profile_name>
+aws_tf_state_s3_bucket_name: <aws_tf_state_s3_bucket_name>
+aws_tf_state_dynamodb_table_name: <aws_tf_state_dynamodb_table_name>
+aws_route53_dns_zone_name: <aws_route53_dns_zone_name>
+```
 
 ### 3. Setup Necessary SSM Parameters and ECR Repository
 
@@ -131,20 +142,14 @@ export CODESTAR_CONNECTION_ARN=""
 
 ## Deployment
 
-### 1. Deploy All Infrastructure
+### 1. Deploy/Destroy all resources
 
 To deploy the complete infrastructure, which includes VPCs, ECS clusters, load balancers, and other AWS resources, run the following command:
 
 ```bash
-./deploy.sh
-```
-
-### 2. Destroy All Infrastructure
-
-If you need to tear down the entire infrastructure, use the following command:
-
-```bash
-./destroy.sh
+cd terraform/scripts
+./deploy.sh apply
+./deploy.sh destroy
 ```
 
 ---
@@ -156,16 +161,16 @@ If you need to tear down the entire infrastructure, use the following command:
 You can deploy resources interactively by using the interactive script.
 
 ```bash
-cd terraform
+cd terraform/scripts
 ./interactive.sh
 ```
 
 ### Perform Terraform Actions
 
-To perform Terraform operations (plan, apply, destroy) for specific environments (dev, prod, shared) and resources, use the following command structure:
+To perform Terraform operations (plan, apply, destroy) for specific environments (test, prod, shared) and resources, use the following command structure:
 
 ```bash
-cd terraform
+cd terraform/scripts
 ./tf.sh <action> <env> <resource>
 ./tf.sh <plan|apply|destroy> <test|prod|shared> <resource>
 ```
@@ -175,8 +180,8 @@ cd terraform
 Documentation for Terraform modules can be auto-generated using the following command:
 
 ```bash
-cd terraform
-./modules/doc.sh
+cd terraform/modules
+./doc.sh
 ```
 
 ## Diagrams
@@ -184,8 +189,8 @@ cd terraform
 The architecture and CI/CD pipeline diagrams included in this project were generated using the [Diagrams](https://diagrams.mingrammer.com/) Python library. This library allows for programmatically generating infrastructure diagrams, making it easier to visualize cloud architectures. To generate the diagrams, install the required dependencies and use the following Python script to define your architecture components:
 ```bash
 pip install diagrams graphviz
----
+```
 
-## Conclusion
+# Conclusion
 
 This project employs modern cloud architecture principles and automation best practices to build a highly scalable, secure, and resilient web application. By leveraging AWS services and tools such as ECS, ALB, S3, and DynamoDB, it ensures high availability, low latency, and cost efficiency. The Terraform-managed infrastructure and CI/CD pipeline further enhance the project by providing automated and reliable deployment processes across environments.

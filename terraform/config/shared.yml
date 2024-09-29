@@ -21,7 +21,7 @@ cicd:
   codepipeline_github_repo_owner: nadirarfi
   codepipeline_github_repo_name: aws-terraform-demo-ecs-app-cicd
   codepipeline_github_repo_branch: main
-  codepipeline_github_repo_dev_branch: develop
+  codepipeline_github_repo_test_branch: testelop
   codepipeline_source_stage_artifact_name: SourceArtifact
   codepipeline_build_stage_backend_artifact_name: BackendBuildArtifact
   codepipeline_build_stage_frontend_artifact_name: FrontendBuildArtifact
@@ -38,10 +38,10 @@ cicd:
   codebuild_frontend_log_group_name: /arfina/app/terraform/aws/codebuild/project/frontend
   # Codedeploy Apps
   codedeploy_backend_app_name: arfina-app-codedeploy-backend
-  codedeploy_backend_dev_deployment_group_name: deployment-group-dev
+  codedeploy_backend_test_deployment_group_name: deployment-group-test
 
   codedeploy_frontend_app_name: arfina-app-codedeploy-frontend
-  codedeploy_frontend_dev_deployment_group_name: deployment-group-dev
+  codedeploy_frontend_test_deployment_group_name: deployment-group-test
 
 
 ##################################### SSM Parameters

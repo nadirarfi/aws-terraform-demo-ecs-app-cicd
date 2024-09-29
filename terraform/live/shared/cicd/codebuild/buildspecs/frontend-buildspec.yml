@@ -84,15 +84,15 @@ phases:
           echo "Build and upload completed for $env on $(date)."
         }
 
-        build_static_files "dev" $APP_REPOSITORY_PATH $DEV_APP_FRONTEND_BUCKET_URI
+        build_static_files "test" $APP_REPOSITORY_PATH $test_APP_FRONTEND_BUCKET_URI
         build_static_files "prod" $APP_REPOSITORY_PATH $PROD_APP_FRONTEND_BUCKET_URI
- 
+
   post_build:
     commands:
       - echo "==========================================================================="
       - echo "Starting Post-build Phase for Frontend..."
       - echo "==========================================================================="
-        
+
       - docker logout
 
       # You can enable CloudFront invalidation here if needed
