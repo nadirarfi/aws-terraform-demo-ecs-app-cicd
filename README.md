@@ -111,11 +111,8 @@ aws_tf_state_s3_bucket_name: <aws_tf_state_s3_bucket_name>
 aws_tf_state_dynamodb_table_name: <aws_tf_state_dynamodb_table_name>
 aws_route53_dns_zone_name: <aws_route53_dns_zone_name>
 ```
-### 2. Prepare Terraform State Remote Backend
-```
-cd
-```
-### 1. Execute the setup script
+
+### 2. Execute the setup script
 
 - Install some utilities related to handling json/yaml files such as yq and jq 
 
@@ -130,8 +127,6 @@ export CODESTAR_CONNECTION_ARN=""
 cd /terraform/scripts/
 ./setup.sh
 ```
-
----
 
 ## Deployment
 
