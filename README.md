@@ -1,8 +1,6 @@
-
 # Project Overview
 
-This project is a fully automated, scalable, and highly available web application built on AWS cloud infrastructure. The backend is a Python Django API containerized using Docker and orchestrated through Amazon ECS (Elastic Container Service), ensuring efficient resource management and high availability. The backend service also interacts with an Amazon DynamoDB table for a fast serverless database. On the other hand, the frontend is a React JS application,  built and distributed globally via AWS CloudFront for low-latency access. The CI/CD pipeline integrates AWS CodePipeline, AWS CodeBuild for building both the frontend and backend, AWS CodeDeploy for blue/green deployment, and Amazon Elastic Container Registry (ECR) for storing Docker images. 
-
+This project is a fully automated, scalable, and highly available web application built on AWS cloud infrastructure. The backend is a Python Django API containerized using Docker and orchestrated through Amazon ECS (Elastic Container Service), ensuring efficient resource management and high availability. The backend service also interacts with an Amazon DynamoDB table for a fast serverless database. On the other hand, the frontend is a React JS application, built and distributed globally via AWS CloudFront for low-latency access. The CI/CD pipeline integrates AWS CodePipeline, AWS CodeBuild for building both the frontend and backend, AWS CodeDeploy for blue/green deployment, and Amazon Elastic Container Registry (ECR) for storing Docker images.
 
 ---
 
@@ -28,25 +26,32 @@ The architecture is designed to separate the concerns of different services, wit
 
 ### Key Components:
 
-1. **VPC (Virtual Private Cloud)**: 
+1. **VPC (Virtual Private Cloud)**:
+
    - A logically isolated section of the AWS cloud where the infrastructure is hosted. The VPC contains public and private subnets to segregate internet-facing and internal resources.
 
 2. **ECS Cluster**:
+
    - The backend services run as tasks in the ECS Cluster. These tasks are auto-scaled based on the application's load and ensure high availability by running across multiple availability zones.
-   
+
 3. **ALB (Application Load Balancer)**:
+
    - The Application Load Balancer distributes incoming HTTP/HTTPS traffic across ECS tasks running the backend. It ensures proper routing based on defined rules and supports health checks for service availability.
 
 4. **DynamoDB**:
+
    - A fully managed NoSQL database used by the backend service for fast and scalable data storage. It allows for flexible querying and supports high-throughput workloads.
 
 5. **S3 (Simple Storage Service)**:
+
    - The static files for the frontend (built by React) are stored in S3 buckets. This storage is cost-effective and scales automatically based on usage.
 
 6. **CloudFront**:
+
    - A global Content Delivery Network (CDN) that caches frontend files (stored in S3) at edge locations worldwide, reducing latency for users and ensuring faster load times.
-   
+
 7. **Route53**:
+
    - AWS’s DNS service that directs traffic to the correct resources (e.g., to CloudFront or the ALB) based on user requests. It also integrates with SSL certificates from AWS Certificate Manager for secure HTTPS communication.
 
 8. **Auto-scaling**:
@@ -63,16 +68,20 @@ This project follows a comprehensive CI/CD pipeline to automate the build, test,
 ### Pipeline Stages:
 
 1. **Source Stage (CodePipeline)**:
+
    - The pipeline is triggered by changes in the GitHub repository. Every push to the repository invokes AWS CodePipeline, which starts the build and deployment process.
 
 2. **Build Stage (CodeBuild)**:
+
    - **Frontend Build**: AWS CodeBuild compiles the React frontend, producing static files, which are then uploaded to an S3 bucket. These files are globally distributed via CloudFront.
    - **Backend Build**: CodeBuild builds a Docker image for the Django backend. The image is pushed to an ECR (Elastic Container Registry), where it is stored for deployment.
 
 3. **Test Stage**:
+
    - CodeDeploy performs a blue/green deployment in the ECS cluster within the test environment. This strategy ensures that new updates do not affect users until the new version is tested and verified.
 
 4. **Manual Approval**:
+
    - After the test stage, the pipeline pauses for a manual approval step before proceeding to production. This step ensures that all necessary validations are completed before deploying the application to the live environment.
 
 5. **Production Deployment (CodeDeploy)**:
@@ -98,10 +107,9 @@ Before starting, ensure the following tools are installed:
 
 ### 1. Modify Configuration Files
 
-You may need to modify certain YAML configuration files to customize the setup for different environments (e.g., test, prod). In particular, make sure to setup your aws configuration in shared configuration file used. Ideally, it would be better to use separate aws account for each environment.  
+You may need to modify certain YAML configuration files to customize the setup for different environments (e.g., test, prod). In particular, make sure to setup your aws configuration in shared configuration file used. Ideally, it would be better to use separate aws account for each environment.
 
 ```yaml
-
 ##################################### AWS Configuration
 aws_region_name: <aws_region_name>
 aws_region_code: <aws_region_code>
@@ -114,7 +122,7 @@ aws_route53_dns_zone_name: <aws_route53_dns_zone_name>
 
 ### 2. Execute the setup script
 
-- Install some utilities related to handling json/yaml files such as yq and jq 
+- Install some utilities related to handling json/yaml files such as yq and jq
 
 - The script also sets up the remote backend for storing Terraform state files, leveraging an S3 bucket and a DynamoDB table for state locking. This ensures that infrastructure can be managed in a consistent and safe manner by multiple users.
 
@@ -132,7 +140,7 @@ cd /terraform/scripts/
 
 ### 1. Deploy/Destroy all resources
 
-To deploy the complete infrastructure, which includes VPCs, ECS clusters, load balancers, and other AWS resources, run the following command:
+To deploy the complete infrastructure, which includes VPCs, ECS clusters, load balancers, and other AWS resources, make sure to run the following command:
 
 ```bash
 cd terraform/scripts
@@ -140,9 +148,39 @@ cd terraform/scripts
 ./deploy.sh destroy
 ```
 
----
+In addition, make sure the resources.json file explicitely define the resources to be deployed. Note that the order of deployment is important in when creating the resources as some resources may be dependent of one another through SSM parameters such as resource IDs or resource ARNs that are passed to some modules. Therefore, when resources are destroyed in the reverse order to avoid dependencies errors. 
 
-## Additional Commands
+```json
+   {
+   "test": {
+      "infrastructure": [
+         "vpc",
+         "security_groups",
+         "alb_target_groups",
+         "alb",
+         "ecs_cluster",
+         "db"
+      ],
+      "application": ["backend", "frontend"]
+   },
+   "prod": {
+      "infrastructure": [
+         "vpc",
+         "security_groups",
+         "alb_target_groups",
+         "alb",
+         "ecs_cluster",
+         "db"
+      ],
+      "application": ["backend", "frontend"]
+   },
+   "shared": {
+      "cicd": ["codebuild", "codedeploy", "codepipeline"]
+   }
+   }
+```
+
+# Additional Stuffs
 
 ### Interactive Deployment
 
@@ -175,6 +213,7 @@ cd terraform/modules
 ## Diagrams
 
 The architecture and CI/CD pipeline diagrams included in this project were generated using the [Diagrams](https://diagrams.mingrammer.com/) Python library. This library allows for programmatically generating infrastructure diagrams, making it easier to visualize cloud architectures. To generate the diagrams, install the required dependencies and use the following Python script to define your architecture components:
+
 ```bash
 pip install diagrams graphviz
 ```
