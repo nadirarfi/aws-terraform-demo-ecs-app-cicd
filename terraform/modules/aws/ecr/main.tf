@@ -8,12 +8,14 @@ resource "aws_ecr_repository" "this" {
 # ========== SSM Parameters ==========
 resource "aws_ssm_parameter" "ecr_repository_arn" {
   type  = "String"
+  overwrite   = true
   name  = var.ssm_ecr_repository_arn_key
   value = aws_ecr_repository.this.arn
 }
 
 resource "aws_ssm_parameter" "ecr_repository_url" {
   type  = "String"
+  overwrite   = true
   name  = var.ssm_ecr_repository_url_key
   value = aws_ecr_repository.this.repository_url
 }

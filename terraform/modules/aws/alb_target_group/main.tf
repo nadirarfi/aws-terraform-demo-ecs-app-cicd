@@ -27,6 +27,7 @@ resource "aws_alb_target_group" "this" {
 # ========== SSM Parameters ==========
 resource "aws_ssm_parameter" "this" {
   type  = "String"
+  overwrite   = true
   name  = var.ssm_alb_target_group_arn_key
   value = aws_alb_target_group.this.arn
 }

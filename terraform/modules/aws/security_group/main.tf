@@ -36,4 +36,5 @@ resource "aws_ssm_parameter" "id" {
   type  = "String"
   name  = var.ssm_security_group_id_key
   value = aws_security_group.this.id
+  overwrite   = true
 }

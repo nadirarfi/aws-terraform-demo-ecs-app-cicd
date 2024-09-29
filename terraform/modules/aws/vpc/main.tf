@@ -98,16 +98,19 @@ resource "aws_ssm_parameter" "vpc_id" {
   type  = "String"
   name  = var.ssm_vpc_id_key
   value = aws_vpc.this.id
+  overwrite   = true
 }
 
 resource "aws_ssm_parameter" "private_subnets_id" {
   type  = "String"
   name  = var.ssm_private_subnets_id_key
   value = join(",", values(aws_subnet.private_subnets)[*].id)
+  overwrite   = true
 }
 
 resource "aws_ssm_parameter" "public_subnets_id" {
   type  = "String"
+  overwrite   = true
   name  = var.ssm_public_subnets_id_key
   value = join(",", values(aws_subnet.public_subnets)[*].id)
 }

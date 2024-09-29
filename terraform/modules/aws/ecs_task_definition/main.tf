@@ -189,16 +189,19 @@ resource "aws_ssm_parameter" "ecs_task_definition_arn" {
   type  = "String"
   name  = var.ssm_ecs_task_definition_arn_key
   value = aws_ecs_task_definition.this.arn
+  overwrite   = true
 }
 
 resource "aws_ssm_parameter" "ecs_task_definition_role_arn" {
   type  = "String"
   name  = var.ssm_ecs_task_definition_role_arn_key
   value = aws_iam_role.ecs_task_role.arn
+  overwrite   = true
 }
 
 resource "aws_ssm_parameter" "ecs_task_definition_execution_role_arn" {
   type  = "String"
+  overwrite   = true
   name  = var.ssm_ecs_task_definition_execution_role_arn_key
   value = aws_iam_role.ecs_task_execution_role.arn
 }

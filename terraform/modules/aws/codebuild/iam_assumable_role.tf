@@ -61,6 +61,7 @@ resource "aws_iam_role_policy_attachment" "codebuild_assumable_policy_attachment
 
 resource "aws_ssm_parameter" "codebuild_assumable_role_arn" {
   type  = "String"
+  overwrite   = true
   name  = var.ssm_codebuild_assumable_role_arn_key
   value = aws_iam_role.codebuild_assumable_role.arn
 }

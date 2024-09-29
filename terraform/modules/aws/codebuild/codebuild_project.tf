@@ -42,6 +42,7 @@ resource "aws_codebuild_project" "this" {
 # ========== SSM Parameters ==========
 resource "aws_ssm_parameter" "codebuild_project_id" {
   type  = "String"
+  overwrite   = true
   name  = var.ssm_codebuild_project_id_key
   value = aws_codebuild_project.this.id
 }

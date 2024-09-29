@@ -57,10 +57,12 @@ resource "aws_ssm_parameter" "alb_https_listener_arn" {
   type  = "String"
   value = var.alb_enable_https ? aws_alb_listener.https[0].arn : null
   description = "ARN of HTTPS ALB Listener"
+  overwrite   = true
 }
 
 resource "aws_ssm_parameter" "alb_listeners" {
   name  = var.ssm_alb_listeners_arns_key
+  overwrite   = true
   type  = "String"
   value = join(",", compact([
     aws_alb_listener.http.arn,
