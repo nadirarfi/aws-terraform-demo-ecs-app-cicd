@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # Import bash scripts
-. ./scripts/helpers.sh
-. ./scripts/terraform.sh
+. ./helpers/functions.sh
+. ./helpers/tf_actions.sh
 
+# Make sure script is executed from root directory
+cd ../../
 
 # Main script logic
 if [ $# -ne 3 ]; then
@@ -15,8 +17,9 @@ action="$1"
 env="$2"
 resource="$3"
 
-# Determine the full resource path
+# # Determine the full resource path
 resource_path=$(get_resource_path "$env" "$resource")
+echo $resource_path
 terraform_setup_backend "$resource_path" "$config_file"
 terraform_init 
 

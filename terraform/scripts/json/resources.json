@@ -1,0 +1,27 @@
+{
+  "dev": {
+    "infrastructure": [
+      "vpc",
+      "security_groups",
+      "alb_target_groups",
+      "alb",
+      "ecs_cluster",
+      "db"
+    ],
+    "application": ["backend", "frontend"]
+  },
+  "prod": {
+    "infrastructure": [
+      "vpc",
+      "security_groups",
+      "alb_target_groups",
+      "alb",
+      "ecs_cluster",
+      "db"
+    ],
+    "application": ["backend", "frontend"]
+  },
+  "shared": {
+    "cicd": ["codebuild", "codedeploy", "codepipeline"]
+  }
+}

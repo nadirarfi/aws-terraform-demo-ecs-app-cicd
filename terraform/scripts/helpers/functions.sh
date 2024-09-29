@@ -3,7 +3,7 @@
 get_resource_path() {
     local env="$1"
     local resource="$2"
-    local RESOURCES_DIRECTORY="live"
+    local RESOURCES_DIRECTORY="terraform/live" # relative to the root directory
     resource_path=""
     if [ -d "$RESOURCES_DIRECTORY/$env" ]; then
         # Loop through each top-level layer (e.g., apps, infrastructure, etc.)
