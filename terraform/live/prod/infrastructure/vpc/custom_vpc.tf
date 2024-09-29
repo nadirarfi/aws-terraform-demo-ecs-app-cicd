@@ -8,7 +8,7 @@ module "prod_vpc" {
   ssm_vpc_id_key             = local.env.ssm_params.vpc_id
   ssm_private_subnets_id_key = local.env.ssm_params.private_subnets_id
   ssm_public_subnets_id_key  = local.env.ssm_params.public_subnets_id
-  enable_internet_gateway    = false
+  enable_internet_gateway    = true
   enable_nat_gateway         = false
   tags                       = {}
 }

@@ -138,17 +138,47 @@ cd /terraform/scripts/
 
 ## Deployment
 
-### 1. Deploy/Destroy all resources
+### How to manage a resource? 
+To perform Terraform operations (plan, apply, destroy) for specific environments (test, prod, shared) and resources, use the following command structure:
+
+```bash
+cd terraform/scripts
+./tf.sh <action> <env> <resource>
+./tf.sh <plan|apply|destroy> <test|prod|shared> <resource>
+
+# Examples: test environment
+./tf.sh apply test vpc
+./tf.sh apply test security_groups
+./tf.sh apply test alb_target_groups
+./tf.sh apply test alb
+./tf.sh apply test ecs_cluster
+./tf.sh apply test db
+
+# Examples: prod environment
+./tf.sh apply prod vpc
+./tf.sh apply prod security_groups
+./tf.sh apply prod alb_target_groups
+./tf.sh apply prod alb
+./tf.sh apply prod ecs_cluster
+./tf.sh apply prod db
+
+# Examples: shared environment
+./tf.sh apply shared codebuild
+./tf.sh apply shared codedeploy
+./tf.sh apply shared codepipeline
+
+```
+
+### How to deploy all resources?
 
 To deploy the complete infrastructure, which includes VPCs, ECS clusters, load balancers, and other AWS resources, make sure to run the following command:
 
 ```bash
 cd terraform/scripts
 ./deploy.sh apply
-./deploy.sh destroy
 ```
 
-In addition, make sure the resources.json file explicitely define the resources to be deployed. Note that the order of deployment is important in when creating the resources as some resources may be dependent of one another through SSM parameters such as resource IDs or resource ARNs that are passed to some modules. Therefore, when resources are destroyed in the reverse order to avoid dependencies errors. 
+In addition, make sure the resources.json file explicitely define the resources to be deployed. Note that the order of deployment is important in when creating the resources as some resources may be dependent of one another through SSM parameters such as resource IDs or resource ARNs that are passed to some modules. 
 
 ```json
    {
@@ -180,6 +210,15 @@ In addition, make sure the resources.json file explicitely define the resources 
    }
 ```
 
+### 2. How to destroy all resources?
+The script ensures that resources are destroyed in the reverse order to avoid dependencies errors. 
+
+```bash
+cd terraform/scripts
+./deploy.sh destroy
+```
+
+
 # Additional Stuffs
 
 ### Interactive Deployment
@@ -191,15 +230,6 @@ cd terraform/scripts
 ./interactive.sh
 ```
 
-### Perform Terraform Actions
-
-To perform Terraform operations (plan, apply, destroy) for specific environments (test, prod, shared) and resources, use the following command structure:
-
-```bash
-cd terraform/scripts
-./tf.sh <action> <env> <resource>
-./tf.sh <plan|apply|destroy> <test|prod|shared> <resource>
-```
 
 ### Generate Terraform Modules Documentation
 
