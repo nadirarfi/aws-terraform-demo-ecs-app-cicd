@@ -96,6 +96,100 @@ This project follows a comprehensive CI/CD pipeline to automate the build, test,
 
 ---
 
+## Project structure
+
+### Explanation of Key Directories and Files:
+
+- **apps/**: Contains the application source code for both the frontend and backend.
+  - **backend/**: The Python Django API application.
+    - **app/api/**: The API logic and endpoints for the Django backend.
+  - **frontend/**: The React JS frontend application.
+    - **public/**: Static assets for the frontend.
+    - **src/**: Source code for the React JS frontend.
+
+- **doc/**: Contains documentation, including diagrams that explain the architecture and CI/CD pipeline.
+  - **diagrams/**: Diagrams of the infrastructure and pipeline, created using the Python `diagrams` library.
+
+- **terraform/**: The Terraform files that manage the infrastructure for different environments (test, prod, shared).
+  - **config/**: YAML Configuration files of each environment.
+  - **live/**: Contains environment-specific infrastructure configurations.
+    - **test/**: Development environment infrastructure, with subdirectories for backend, frontend, and key AWS resources like ALB, VPC, ECS, etc.
+    - **prod/**: Production environment infrastructure, similar to test.
+    - **shared/**: Shared infrastructure between test and prod environments, such as CICD pipelines, ECR repositories, and Terraform state management.
+  - **modules/**: Reusable Terraform modules to define infrastructure components like ALB, ECS clusters, S3 buckets, VPCs, and more.
+  - **scripts/**: Utility scripts used to manage the project (e.g., for deployment and setup).
+
+This structure promotes a clear separation of concerns between application code, infrastructure as code, and environment-specific configurations, making the project easier to manage and extend.
+
+### Folders structure
+```bash
+.
+├── apps
+│   ├── backend
+│   │   └── app
+│   │       └── api
+│   └── frontend
+│       ├── public
+│       └── src
+├── doc
+│   └── diagrams
+└── terraform
+    ├── config
+    ├── live
+    │   ├── prod
+    │   │   ├── apps
+    │   │   │   ├── backend
+    │   │   │   └── frontend
+    │   │   └── infrastructure
+    │   │       ├── alb
+    │   │       ├── alb_target_groups
+    │   │       ├── db
+    │   │       ├── ecs_cluster
+    │   │       ├── security_groups
+    │   │       └── vpc
+    │   ├── shared
+    │   │   ├── cicd
+    │   │   │   ├── codebuild
+    │   │   │   │   ├── buildspecs
+    │   │   │   │   └── templates
+    │   │   │   ├── codedeploy
+    │   │   │   └── codepipeline
+    │   │   └── setup
+    │   │       ├── ecr_repositories
+    │   │       └── terraform_state
+    │   └── test
+    │       ├── apps
+    │       │   ├── backend
+    │       │   └── frontend
+    │       └── infrastructure
+    │           ├── alb
+    │           ├── alb_target_groups
+    │           ├── db
+    │           ├── ecs_cluster
+    │           ├── security_groups
+    │           └── vpc
+    ├── modules
+    │   ├── aws
+    │   │   ├── alb
+    │   │   ├── alb_target_group
+    │   │   ├── cloudfront
+    │   │   ├── codebuild
+    │   │   ├── codedeploy
+    │   │   ├── codepipeline
+    │   │   ├── dynamodb
+    │   │   ├── ecr
+    │   │   ├── ecs_cluster
+    │   │   ├── ecs_service
+    │   │   ├── ecs_task_definition
+    │   │   ├── security_group
+    │   │   ├── terraform_state_backend
+    │   │   └── vpc
+    │   └── examples
+    └── scripts
+        ├── helpers
+        └── json
+```
+
 ## Setup
 
 ### Requirements
