@@ -20,8 +20,8 @@ phases:
 
       # Setup artifacts and template paths
       - export ARTIFACTS_DIRECTORY=terraform/artifacts
-      - export TASK_DEF_TEMPLATE=terraform/live/shared/codebuild/templates/backend_task_definition.tpl.json
-      - export APP_SPEC_TEMPLATE=terraform/live/shared/codebuild/templates/backend-appspec.tpl.yml
+      - export TASK_DEF_TEMPLATE=terraform/live/shared/cicd/codebuild/templates/backend_task_definition.tpl.json
+      - export APP_SPEC_TEMPLATE=terraform/live/shared/cicd/codebuild/templates/backend-appspec.tpl.yml
       - export COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
 
       - echo "==========================================================================="
@@ -56,9 +56,9 @@ phases:
 
         # Fetch the latest task definition ARN for test environment and store it in a variable
         # Update the SSM with the latest task definition ARN for the test environment
-        test_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$test_TASK_FAMILY")
+        TEST_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$TEST_TASK_FAMILY")
         PROD_TASK_DEFINITION_ARN=$(get_latest_task_definition_arn "$PROD_TASK_FAMILY")
-        update_ssm_with_task_definition_arn "test" "$test_TASK_FAMILY" "$test_SSM_TASK_DEFINITION_ARN_KEY"
+        update_ssm_with_task_definition_arn "test" "$TEST_TASK_FAMILY" "$TEST_SSM_TASK_DEFINITION_ARN_KEY"
         update_ssm_with_task_definition_arn "prod" "$PROD_TASK_FAMILY" "$PROD_SSM_TASK_DEFINITION_ARN_KEY"
 
       # Get docker hub credentials
