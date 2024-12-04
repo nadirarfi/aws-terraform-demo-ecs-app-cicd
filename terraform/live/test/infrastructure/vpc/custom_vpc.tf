@@ -9,6 +9,6 @@ module "test_vpc" {
   ssm_private_subnets_id_key = local.env.ssm_params.private_subnets_id
   ssm_public_subnets_id_key  = local.env.ssm_params.public_subnets_id
   enable_internet_gateway    = true
-  enable_nat_gateway         = false
+  enable_nat_gateway         = true
   tags                       = {}
 }
