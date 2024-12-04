@@ -117,7 +117,6 @@ phases:
           sed -i "s|<AWS_REGION>|$AWS_REGION|g" $task_def_tpl
           sed -i "s|<AWSLOGS_GROUP>|${!awslogs_group_var}|g" $task_def_tpl
           sed -i "s|<AWSLOGS_STREAM_PREFIX>|${!awslogs_stream_var}|g" $task_def_tpl
-          sed -i "s|<HEALTHCHECK_PATH>|${!healthcheck_path_var}|g" $task_def_tpl
           sed -i "s|<TASK_ROLE_ARN>|${!task_role_arn_var}|g" $task_def_tpl
           sed -i "s|<TASK_EXECUTION_ROLE_ARN>|${!task_execution_role_arn_var}|g" $task_def_tpl
           sed -i "s|<TASK_CPU>|${!container_cpu_var}|g" $task_def_tpl

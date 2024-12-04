@@ -41,6 +41,7 @@
 
 # Load helper functions (assuming they are in helpers/functions.sh)
 source ./helpers/functions.sh
+source ./helpers/tf_actions.sh
 
 # Function to perform Terraform actions
 terraform_action() {
@@ -124,7 +125,6 @@ main() {
             for resource in $resources; do
                 # Determine the full resource path
                 resource_path=$(get_resource_path "$env" "$resource")
-                terraform_init $resource_path
                 terraform_action "$action" "$env" "$resource"
             done
         done

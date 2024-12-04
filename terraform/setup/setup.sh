@@ -4,9 +4,9 @@
 ############## Configuration
 ####################################################################################
 # Load environment-specific variables from shared.yml
-SHARED_CONFIG=terraform/config/shared.yml
-TEST_CONFIG=terraform/config/test.yml
-PROD_CONFIG=terraform/config/prod.yml
+SHARED_CONFIG=../config/shared.yml
+TEST_CONFIG=../config/test.yml
+PROD_CONFIG=../config/prod.yml
 BACKEND_APP_DIR=apps/backend   # Path to the backend app directory
 
 # Using yq to extract values from the YAML file
