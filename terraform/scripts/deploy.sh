@@ -92,7 +92,7 @@ main() {
     fi
 
     # Load the JSON file
-    local json_file="./json/resources.json"
+    local json_file="./resources.json"
     if [ ! -f "$json_file" ]; then
         echo "Error: JSON file $json_file not found!"
         exit 1
@@ -122,6 +122,9 @@ main() {
 
             # Apply Terraform actions to each resource
             for resource in $resources; do
+                # Determine the full resource path
+                resource_path=$(get_resource_path "$env" "$resource")
+                terraform_init $resource_path
                 terraform_action "$action" "$env" "$resource"
             done
         done

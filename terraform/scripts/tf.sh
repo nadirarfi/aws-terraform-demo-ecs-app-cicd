@@ -17,11 +17,9 @@ action="$1"
 env="$2"
 resource="$3"
 
-# # Determine the full resource path
+# Determine the full resource path
 resource_path=$(get_resource_path "$env" "$resource")
-echo $resource_path
-terraform_setup_backend "$resource_path" "$config_file"
-terraform_init 
+terraform_init $resource_path
 
 # Execute the specified action
 case $action in

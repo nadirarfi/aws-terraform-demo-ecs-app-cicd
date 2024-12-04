@@ -1,8 +1,7 @@
 #!/bin/bash
 
-terraform_setup_backend() {
+terraform_init() {
     local resource_path="$1"
-    local config_file="$2"
 
     config_folder_name="config"
     config_file_name="shared.yml"
@@ -40,9 +39,8 @@ terraform {
 }
 EOL
 
-}
+    cat $BACKEND_FILE
 
-terraform_init() {
     terraform fmt -recursive
     terraform init -migrate-state ||
         {
@@ -58,6 +56,9 @@ terraform_plan() {
         echo -e "\033[1;31mTerraform plan failed\033[0m"
         exit 1
     }
+    rm $plan_output
+    rm -rf .terraform
+    rm .terraform.lock.hcl    
 }
 
 # Function to run terraform apply
@@ -111,5 +112,5 @@ terraform_destroy_auto_approve(){
     terraform destroy --auto-approve || {
         echo -e "\033[1;31mTerraform destroy failed\033[0m"
         exit 1
-    }    
+    }        
 }

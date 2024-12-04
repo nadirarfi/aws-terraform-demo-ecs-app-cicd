@@ -6,10 +6,40 @@ source ./helpers/tf_actions.sh
 
 cd ../ # Ensure we are at the terraform directory
 
+
+# # Function to perform Terraform actions
+# terraform_action() {
+#     local action=$1
+#     local env=$2
+#     local resource=$3
+
+#     echo "Running Terraform $action for $env $resource"
+#     case "$action" in
+#         apply)
+#             ./tf.sh apply-auto-approve "$env" "$resource"
+#             ;;
+#         destroy)
+#             ./tf.sh destroy-auto-approve "$env" "$resource"
+#             ;;
+#         plan)
+#             ./tf.sh plan "$env" "$resource"
+#             ;;
+#         *)
+#             echo "Invalid action: $action"
+#             exit 1
+#             ;;
+#     esac
+
+#     # Check for errors
+#     if [ $? -ne 0 ]; then
+#         echo "Error: Terraform failed while running $action for $env $resource"
+#         exit 1
+#     fi
+# }
+
 # Execute actions
 execute_actions() {
-    terraform_setup_backend "$resource_path" "$config_file"
-    terraform_init
+    
     # Execute the selected action
     prompt "Executing $action"
     case $action in
@@ -20,6 +50,9 @@ execute_actions() {
     echo -e "\033[1;32mAction $action completed successfully.\033[0m" # Green color for success
 }
 
+
+
+
 #################################### Main
 #!/bin/bash
 
@@ -29,8 +62,9 @@ if [[ $# -eq 2 ]]; then
     env="$1"
     resource="$2"
 
-    # Determine the full resource path
-    resource_path=$(get_resource_path "$env" "$resource")
+    # # Determine the full resource path
+    # resource_path=$(get_resource_path "$env" "$resource")
+    # terraform_init $resource_path
 
     # Automatically jump to the action selection
     prompt "Direct Mode: Select an Action to Perform"
@@ -67,12 +101,15 @@ else
             prompt "STEP 3: Select a Resource in the $layer Layer"
             echo "Select the specific resource in the $layer layer that you want to manage."
             resource=$(handle_selection "Resource" "$(colorize_options $(ls live/$env/$layer | grep -v -i 'README') "Go Back")" "")
+            echo $resource
 
             if [[ $? -eq 1 ]]; then
                 continue 2
             fi
 
-            resource_path="live/$env/$layer/$resource"
+            # resource_path=$(get_resource_path "$env" "$resource")
+            # echo $resource_path
+            # terraform_init $resource_path
             break 3
         done
     done

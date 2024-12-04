@@ -1,28 +1,13 @@
 #!/bin/bash
 
 ####################################################################################
-############## Install utilities
-####################################################################################
-echo "Install utilities (necessary for scripting and visualization)"
-sudo apt-get install yq jq fzf tree
-
-####################################################################################
-############## Terraform State
-####################################################################################
-# Make sure first terraform state backend resources are setup properly (s3 bucket and dynamodb table)
-terraform init
-terraform plan
-terraform apply
-
-####################################################################################
 ############## Configuration
 ####################################################################################
 # Load environment-specific variables from shared.yml
-SHARED_CONFIG=../config/shared.yml
-TEST_CONFIG=../config/test.yml
-PROD_CONFIG=../config/prod.yml
-
-BACKEND_APP_DIR=../../apps/backend   # Path to the backend app directory
+SHARED_CONFIG=terraform/config/shared.yml
+TEST_CONFIG=terraform/config/test.yml
+PROD_CONFIG=terraform/config/prod.yml
+BACKEND_APP_DIR=apps/backend   # Path to the backend app directory
 
 # Using yq to extract values from the YAML file
 AWS_REGION=$(yq e '.aws_region_name' $SHARED_CONFIG)
@@ -32,7 +17,6 @@ SSM_DOCKER_HUB_USERNAME_KEY=$(yq e '.ssm_params.codebuild_docker_hub_username' $
 SSM_DOCKER_HUB_PASSWORD_KEY=$(yq e '.ssm_params.codebuild_docker_hub_password' $SHARED_CONFIG)
 SSM_CODESTAR_CONNECTION_ARN_KEY=$(yq e '.ssm_params.codepipeline_codestarconnection_arn' $SHARED_CONFIG)
 BACKEND_ECR_REPOSITORY_NAME=$(yq e '.cicd.ecr_backend_repository_name' $SHARED_CONFIG)
-
 # Construct the ECR repository URLs dynamically
 BACKEND_ECR_REPOSITORY_URL="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${BACKEND_ECR_REPOSITORY_NAME}"
 
@@ -65,17 +49,10 @@ set_ssm_param_from_env_or_input() {
     fi
 }
 
-# Use the environment variable if set, otherwise ask the user
-# set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_USERNAME_KEY" "$DOCKER_HUB_USERNAME" "$AWS_PROFILE" "$AWS_REGION"
-# set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_PASSWORD_KEY" "$DOCKER_HUB_PASSWORD" "$AWS_PROFILE" "$AWS_REGION"
-# set_ssm_param_from_env_or_input "$SSM_CODESTAR_CONNECTION_ARN_KEY" "$CODESTAR_CONNECTION_ARN" "$AWS_PROFILE" "$AWS_REGION"
-
-
-
-####################################################################################
-############## Create ECR Repositories
-####################################################################################
-./tf.sh apply-auto-approve shared ecr_repositories
+# # Use the environment variable if set, otherwise ask the user
+set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_USERNAME_KEY" "$DOCKER_HUB_USERNAME" "$AWS_PROFILE" "$AWS_REGION"
+set_ssm_param_from_env_or_input "$SSM_DOCKER_HUB_PASSWORD_KEY" "$DOCKER_HUB_PASSWORD" "$AWS_PROFILE" "$AWS_REGION"
+set_ssm_param_from_env_or_input "$SSM_CODESTAR_CONNECTION_ARN_KEY" "$CODESTAR_CONNECTION_ARN" "$AWS_PROFILE" "$AWS_REGION"
 
 ####################################################################################
 ############## Push first default images of backend 

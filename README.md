@@ -101,6 +101,7 @@ This project follows a comprehensive CI/CD pipeline to automate the build, test,
 ### Explanation of Key Directories and Files:
 
 - **apps/**: Contains the application source code for both the frontend and backend.
+
   - **backend/**: The Python Django API application.
     - **app/api/**: The API logic and endpoints for the Django backend.
   - **frontend/**: The React JS frontend application.
@@ -108,6 +109,7 @@ This project follows a comprehensive CI/CD pipeline to automate the build, test,
     - **src/**: Source code for the React JS frontend.
 
 - **doc/**: Contains documentation, including diagrams that explain the architecture and CI/CD pipeline.
+
   - **diagrams/**: Diagrams of the infrastructure and pipeline, created using the Python `diagrams` library.
 
 - **terraform/**: The Terraform files that manage the infrastructure for different environments (test, prod, shared).
@@ -121,7 +123,194 @@ This project follows a comprehensive CI/CD pipeline to automate the build, test,
 
 This structure promotes a clear separation of concerns between application code, infrastructure as code, and environment-specific configurations, making the project easier to manage and extend.
 
+## Setup
+
+### Requirements
+
+Before starting, ensure the following tools are installed:
+
+- **Docker**: To run containerized applications.
+- **Terraform 1.5.3**: To manage infrastructure
+
+### 1. Modify Configuration Files
+
+You may need to modify certain YAML configuration files to customize the setup for different environments (e.g., test, prod). In particular, make sure to setup your aws configuration in shared configuration file used. Ideally, it would be better to use separate aws account for each environment.
+
+```yaml
+##################################### AWS Configuration
+aws_region_name: <aws_region_name>
+aws_region_code: <aws_region_code>
+aws_account_id: <aws_account_id>
+aws_profile_name: <aws_profile_name>
+aws_tf_state_s3_bucket_name: <aws_tf_state_s3_bucket_name>
+aws_tf_state_dynamodb_table_name: <aws_tf_state_dynamodb_table_name>
+aws_route53_dns_zone_name: <aws_route53_dns_zone_name>
+```
+
+### 2. Setup
+
+- Install some utilities related to handling json/yaml files such as yq and jq
+```bash
+echo "Install utilities (necessary for scripting and visualization)"
+sudo apt-get install yq jq fzf tree
+```
+
+- The script also sets up the remote backend for storing Terraform state files, leveraging an S3 bucket and a DynamoDB table for state locking. This ensures that infrastructure can be managed in a consistent and safe manner by multiple users.
+```bash
+cd terraform/setup/terraform_state
+terraform init
+terraform plan
+terraform apply
+```
+
+- Deploy ECR repositories for storing Docker images.
+```bash
+cd ../../scripts
+./tf.sh apply-auto-approve shared ecr_repositories
+```
+
+- Set up SSM parameters for secrets management (like Docker credentials) and push ECR images of frontend and backend
+```bash
+export DOCKER_HUB_USERNAME=""
+export DOCKER_HUB_PASSWORD=""
+export CODESTAR_CONNECTION_ARN=""
+cd /terraform/scripts/
+./setup.sh
+```
+
+- Codestar connection can be created on the AWS console, use the generated ARN and pass it as an environment variable. This connection is used to manage access to allow codepipeline to retrieve source code from github.
+  ![](./doc/diagrams/codestar_connection.jpg)
+
+## Deployment
+
+### How to manage a resource?
+
+To perform Terraform operations (plan, apply, destroy) for specific environments (test, prod, shared) and resources, use the following command structure:
+
+```bash
+cd terraform/scripts
+./tf.sh <action> <env> <resource>
+./tf.sh <plan|apply|destroy> <test|prod|shared> <resource>
+
+# Examples: test environment
+./tf.sh apply test vpc
+./tf.sh apply test security_groups
+./tf.sh apply test alb_target_groups
+./tf.sh apply test alb
+./tf.sh apply test ecs_cluster
+./tf.sh apply test db
+
+# Examples: prod environment
+./tf.sh apply prod vpc
+./tf.sh apply prod security_groups
+./tf.sh apply prod alb_target_groups
+./tf.sh apply prod alb
+./tf.sh apply prod ecs_cluster
+./tf.sh apply prod db
+
+# Examples: shared environment
+./tf.sh apply shared codebuild
+./tf.sh apply shared codedeploy
+./tf.sh apply shared codepipeline
+
+```
+
+### How to deploy all resources?
+
+To deploy the complete infrastructure, which includes VPCs, ECS clusters, load balancers, and other AWS resources, make sure to run the following command:
+
+```bash
+cd terraform/scripts
+./deploy.sh apply
+```
+
+In addition, make sure the resources.json file explicitely define the resources to be deployed. Note that the order of deployment is important in when creating the resources as some resources may be dependent of one another through SSM parameters such as resource IDs or resource ARNs that are passed to some modules.
+
+```json
+{
+  "test": {
+    "infrastructure": [
+      "vpc",
+      "security_groups",
+      "alb_target_groups",
+      "alb",
+      "ecs_cluster",
+      "db"
+    ],
+    "application": ["backend", "frontend"]
+  },
+  "prod": {
+    "infrastructure": [
+      "vpc",
+      "security_groups",
+      "alb_target_groups",
+      "alb",
+      "ecs_cluster",
+      "db"
+    ],
+    "application": ["backend", "frontend"]
+  },
+  "shared": {
+    "cicd": ["codebuild", "codedeploy", "codepipeline"]
+  }
+}
+```
+
+### 2. How to destroy all resources?
+
+The script ensures that resources are destroyed in the reverse order to avoid dependencies errors.
+
+```bash
+cd terraform/scripts
+./deploy.sh destroy
+```
+
+# Additional Stuffs
+
+### Interactive Deployment
+
+You can deploy resources interactively by using the interactive script.
+
+```bash
+cd terraform/scripts
+./interactive.sh
+```
+
+#### Select environment
+
+![Manage infrastructure in an interactive way](./doc/diagrams/interactive_1.jpg)
+
+#### Select layer or resource group
+
+![](./doc/diagrams/interactive_2.jpg)
+
+#### Select resource
+
+![](./doc/diagrams/interactive_3.jpg)
+
+#### Select terraform action
+
+![](./doc/diagrams/interactive_4.jpg)
+
+### Generate Terraform Modules Documentation
+
+Documentation for Terraform modules can be auto-generated using the following command:
+
+```bash
+cd terraform/modules
+./doc.sh
+```
+
+## Diagrams
+
+The architecture and CI/CD pipeline diagrams included in this project were generated using the [Diagrams](https://diagrams.mingrammer.com/) Python library. This library allows for programmatically generating infrastructure diagrams, making it easier to visualize cloud architectures. To generate the diagrams, install the required dependencies and use the following Python script to define your architecture components:
+
+```bash
+pip install diagrams graphviz
+```
+
 ### Folders structure
+
 ```bash
 .
 ├── apps
@@ -190,168 +379,19 @@ This structure promotes a clear separation of concerns between application code,
         └── json
 ```
 
-## Setup
-
-### Requirements
-
-Before starting, ensure the following tools are installed:
-
-- **Docker**: To run containerized applications.
-- **Terraform 1.5.3**: To manage infrastructure
-
-### 1. Modify Configuration Files
-
-You may need to modify certain YAML configuration files to customize the setup for different environments (e.g., test, prod). In particular, make sure to setup your aws configuration in shared configuration file used. Ideally, it would be better to use separate aws account for each environment.
-
-```yaml
-##################################### AWS Configuration
-aws_region_name: <aws_region_name>
-aws_region_code: <aws_region_code>
-aws_account_id: <aws_account_id>
-aws_profile_name: <aws_profile_name>
-aws_tf_state_s3_bucket_name: <aws_tf_state_s3_bucket_name>
-aws_tf_state_dynamodb_table_name: <aws_tf_state_dynamodb_table_name>
-aws_route53_dns_zone_name: <aws_route53_dns_zone_name>
-```
-
-### 2. Execute the setup script
-
-- Install some utilities related to handling json/yaml files such as yq and jq
-
-- The script also sets up the remote backend for storing Terraform state files, leveraging an S3 bucket and a DynamoDB table for state locking. This ensures that infrastructure can be managed in a consistent and safe manner by multiple users.
-
-- The script also sets up SSM parameters for secrets management (like Docker credentials) and prepare the ECR repositories for storing Docker images.
+## Clean all account
 
 ```bash
-export DOCKER_HUB_USERNAME=""
-export DOCKER_HUB_PASSWORD=""
-export CODESTAR_CONNECTION_ARN=""
-cd /terraform/scripts/
-./setup.sh
-```
+PROFILE=arfin-admin
 
-- Codestar connection can be created on the AWS console, use the generated ARN and pass it as an environment variable. This connection is used to manage access to allow codepipeline to retrieve source code from github.
-![](./doc/diagrams/codestar_connection.jpg)
+docker run \
+   --rm -it \
+   -v /aws-nuke/config.yml:/aws-nuke/config.yml \
+   -v /home/user/.aws:/home/aws-nuke/.aws \
+   quay.io/rebuy/aws-nuke:v2.25.0 \
+   --profile default \
+   --config /home/aws-nuke/config.yml
 
-
-## Deployment
-
-### How to manage a resource? 
-To perform Terraform operations (plan, apply, destroy) for specific environments (test, prod, shared) and resources, use the following command structure:
-
-```bash
-cd terraform/scripts
-./tf.sh <action> <env> <resource>
-./tf.sh <plan|apply|destroy> <test|prod|shared> <resource>
-
-# Examples: test environment
-./tf.sh apply test vpc
-./tf.sh apply test security_groups
-./tf.sh apply test alb_target_groups
-./tf.sh apply test alb
-./tf.sh apply test ecs_cluster
-./tf.sh apply test db
-
-# Examples: prod environment
-./tf.sh apply prod vpc
-./tf.sh apply prod security_groups
-./tf.sh apply prod alb_target_groups
-./tf.sh apply prod alb
-./tf.sh apply prod ecs_cluster
-./tf.sh apply prod db
-
-# Examples: shared environment
-./tf.sh apply shared codebuild
-./tf.sh apply shared codedeploy
-./tf.sh apply shared codepipeline
-
-```
-
-### How to deploy all resources?
-
-To deploy the complete infrastructure, which includes VPCs, ECS clusters, load balancers, and other AWS resources, make sure to run the following command:
-
-```bash
-cd terraform/scripts
-./deploy.sh apply
-```
-
-In addition, make sure the resources.json file explicitely define the resources to be deployed. Note that the order of deployment is important in when creating the resources as some resources may be dependent of one another through SSM parameters such as resource IDs or resource ARNs that are passed to some modules. 
-
-```json
-   {
-   "test": {
-      "infrastructure": [
-         "vpc",
-         "security_groups",
-         "alb_target_groups",
-         "alb",
-         "ecs_cluster",
-         "db"
-      ],
-      "application": ["backend", "frontend"]
-   },
-   "prod": {
-      "infrastructure": [
-         "vpc",
-         "security_groups",
-         "alb_target_groups",
-         "alb",
-         "ecs_cluster",
-         "db"
-      ],
-      "application": ["backend", "frontend"]
-   },
-   "shared": {
-      "cicd": ["codebuild", "codedeploy", "codepipeline"]
-   }
-   }
-```
-
-### 2. How to destroy all resources?
-The script ensures that resources are destroyed in the reverse order to avoid dependencies errors. 
-
-```bash
-cd terraform/scripts
-./deploy.sh destroy
-```
-
-
-# Additional Stuffs
-
-### Interactive Deployment
-
-You can deploy resources interactively by using the interactive script.
-
-```bash
-cd terraform/scripts
-./interactive.sh
-```
-#### Select environment
-![Manage infrastructure in an interactive way](./doc/diagrams/interactive_1.jpg)
-#### Select layer or resource group
-![](./doc/diagrams/interactive_2.jpg)
-#### Select resource
-![](./doc/diagrams/interactive_3.jpg)
-#### Select terraform action
-![](./doc/diagrams/interactive_4.jpg)
-
-
-### Generate Terraform Modules Documentation
-
-Documentation for Terraform modules can be auto-generated using the following command:
-
-```bash
-cd terraform/modules
-./doc.sh
-```
-
-## Diagrams
-
-The architecture and CI/CD pipeline diagrams included in this project were generated using the [Diagrams](https://diagrams.mingrammer.com/) Python library. This library allows for programmatically generating infrastructure diagrams, making it easier to visualize cloud architectures. To generate the diagrams, install the required dependencies and use the following Python script to define your architecture components:
-
-```bash
-pip install diagrams graphviz
 ```
 
 # Conclusion
