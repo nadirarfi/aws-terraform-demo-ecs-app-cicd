@@ -126,51 +126,47 @@ module "codebuild_backend" {
 
     # test Environment Variables
     {
-      name  = "test_TASK_FAMILY"
+      name  = "TEST_TASK_FAMILY"
       value = local.test.app_backend_ecs_task_def_name
     },
     {
-      name  = "test_SSM_TASK_DEFINITION_ARN_KEY"
+      name  = "TEST_SSM_TASK_DEFINITION_ARN_KEY"
       value = local.test.ssm_params.app_backend_ecs_task_def_arn
     },
     {
-      name  = "test_CONTAINER_NAME"
+      name  = "TEST_CONTAINER_NAME"
       value = local.test.app_backend_ecs_task_def_container_name
     },
     {
-      name  = "test_CONTAINER_PORT"
+      name  = "TEST_CONTAINER_PORT"
       value = local.test.app_backend_port_number
     },
     {
-      name  = "test_HEALTHCHECK_PATH"
-      value = local.test.app_backend_health_check_path
-    },
-    {
-      name  = "test_CONTAINER_CPU"
+      name  = "TEST_CONTAINER_CPU"
       value = local.test.app_backend_ecs_task_def_cpu
     },
     {
-      name  = "test_CONTAINER_MEMORY_RESERVATION"
+      name  = "TEST_CONTAINER_MEMORY_RESERVATION"
       value = local.test.app_backend_ecs_task_def_memory
     },
     {
-      name  = "test_AWSLOGS_GROUP"
+      name  = "TEST_AWSLOGS_GROUP"
       value = local.test.app_backend_ecs_task_def_log_group_name
     },
     {
-      name  = "test_AWSLOGS_STREAM_PREFIX"
+      name  = "TEST_AWSLOGS_STREAM_PREFIX"
       value = local.test.app_backend_ecs_task_def_log_stream_prefix
     },
     {
-      name  = "test_DYNAMODB_TABLE_NAME"
+      name  = "TEST_DYNAMODB_TABLE_NAME"
       value = local.test.app_backend_dynamodb_table_name
     },
     {
-      name  = "test_TASK_ROLE_ARN"
+      name  = "TEST_TASK_ROLE_ARN"
       value = data.aws_ssm_parameter.test_app_backend_ecs_task_def_role_arn.value
     },
     {
-      name  = "test_TASK_EXECUTION_ROLE_ARN"
+      name  = "TEST_TASK_EXECUTION_ROLE_ARN"
       value = data.aws_ssm_parameter.test_app_backend_ecs_task_def_execution_role_arn.value
     },
     # PROD Environment Variables
@@ -189,10 +185,6 @@ module "codebuild_backend" {
     {
       name  = "PROD_CONTAINER_PORT"
       value = local.prod.app_backend_port_number
-    },
-    {
-      name  = "PROD_HEALTHCHECK_PATH"
-      value = local.prod.app_backend_health_check_path
     },
     {
       name  = "PROD_CONTAINER_CPU"

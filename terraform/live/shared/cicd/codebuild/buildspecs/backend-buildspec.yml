@@ -99,7 +99,6 @@ phases:
           local awslogs_stream_var="${env^^}_AWSLOGS_STREAM_PREFIX"
           local task_role_arn_var="${env^^}_TASK_ROLE_ARN"
           local task_execution_role_arn_var="${env^^}_TASK_EXECUTION_ROLE_ARN"
-          local healthcheck_path_var="${env^^}_HEALTHCHECK_PATH"
 
           echo "==========================================================================="
           echo "Setting up task definition for $env..."
